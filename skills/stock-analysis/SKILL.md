@@ -2,7 +2,7 @@
 name: stock-analysis
 description: 全球股市深度复盘技能。用于 A股、港股、美股、日股、韩股和基金的当前行情、盘前/盘中/盘后复盘、证据驱动分析与公司研究；日韩使用免费免登录行情、独立交易日历，并在缺少一手财务时触发自包含的 primary-evidence-reach 能力。
 metadata:
-  version: "4.16.0"
+  version: "4.17.0"
   author: "Hermes Agent + yjw"
   platforms: "linux, macos, windows"
 ---

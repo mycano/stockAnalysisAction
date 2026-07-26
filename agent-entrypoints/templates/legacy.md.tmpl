@@ -1,0 +1,32 @@
+---
+name: "{{name}}"
+description: "{{description}}"
+managed_by: "stock-analysis"
+schema_version: "{{schema_version}}"
+command_id: "{{command_id}}"
+catalog_hash: "{{catalog_hash}}"
+host_target: "{{host_target}}"
+x-stock-analysis-managed: true
+x-stock-analysis-schema: "agent-entrypoint/v2"
+x-stock-analysis-command: "{{x_command}}"
+x-stock-analysis-catalog-hash: "{{catalog_hash}}"
+deprecated: true
+---
+
+# {{heading}}
+
+此入口自 {{deprecated_since}} 起弃用，仅兼容转发到 `{{new_entrypoint}}`；不得复制或执行第二套
+业务协议。向用户显示弃用提示，保留原参数，并将其整理为：
+
+```json
+{{request_example}}
+```
+
+然后以独立 argv 元素调用：
+
+```text
+stock-analysis agent route --request <HostRequest JSON>
+stock-analysis agent run --request <HostRequest JSON>
+```
+
+不得使用 `--input`，不得拼接 Shell 字符串，且必须保留 Router 的阻断、重定向和原因码。

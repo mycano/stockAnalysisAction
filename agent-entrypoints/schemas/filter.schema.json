@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AdvancingTitans/stock-analysis/agent-entrypoints/schemas/filter.schema.json",
+  "title": "ScreenFilter",
+  "type": "object",
+  "required": ["field", "operator", "value", "unit", "missing"],
+  "additionalProperties": false,
+  "properties": {
+    "field": {"type": "string", "minLength": 1},
+    "operator": {"enum": ["gt", "gte", "lt", "lte", "eq", "neq"]},
+    "value": {"type": "number"},
+    "unit": {"enum": ["number", "percent", "currency", "ratio"]},
+    "missing": {"enum": ["unknown", "exclude"]}
+  }
+}

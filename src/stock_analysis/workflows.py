@@ -33,11 +33,24 @@ def render_stock_review(pack: dict[str, Any], title: str = "公司研究") -> st
     return "\n".join(lines)
 
 
-def render_price_move(pack: dict[str, Any]) -> str:
+def render_price_move(
+    pack: dict[str, Any],
+    *,
+    window_type: str = "single-session",
+    start_date: str | None = None,
+    event: str | None = None,
+) -> str:
     quote = pack.get("quote") or {}
     risk = pack["modules"]["C7"]
     events = pack["modules"]["C8"]
-    lines = [f"# 异动归因：{pack['name']}（{pack['symbol']}）", "", f"**证据日期**：{pack['trade_date']}", "", "## 已验证市场事实", "", f"- 最新价：{quote.get('value') if quote.get('value') is not None else '暂缺'} {quote.get('currency') or ''}", f"- 报价来源：{quote.get('source') or '暂缺'}", "", "## 量价与事件证据", ""]
+    boundary = (
+        f"{start_date or '未提供'} → {pack['trade_date']}"
+        if window_type == "multi-session"
+        else pack["trade_date"]
+    )
+    if window_type == "event-window":
+        boundary = f"{pack['trade_date']}；事件={event or '未提供'}"
+    lines = [f"# 异动归因：{pack['name']}（{pack['symbol']}）", "", f"**证据日期**：{pack['trade_date']}", f"**分析窗口**：{window_type}（{boundary}）", "", "## 已验证市场事实", "", f"- 最新价：{quote.get('value') if quote.get('value') is not None else '暂缺'} {quote.get('currency') or ''}", f"- 报价来源：{quote.get('source') or '暂缺'}", "", "## 量价与事件证据", ""]
     for item in risk.get("evidence") or []:
         if item.get("metric"):
             lines.append(f"- {item['metric']}：{item.get('value')}")
@@ -48,7 +61,41 @@ def render_price_move(pack: dict[str, Any]) -> str:
             lines.append(f"- 新闻脉冲：{item['title']}（{item.get('tone') or '未分类'}）")
     if not (risk.get("evidence") or events.get("evidence")):
         lines.append("- 证据暂缺。")
-    lines.extend(["", "## 归因边界", "", "当前证据可确认价格、量价和公开事件样本；未取得指数/同行同步表现和原始公告前，不将事件断言为异动主因。", "", "## 是否触发论文重审", "", "- 是：若 C2/C3/C6/C7 的核心事实或原有证伪条件发生变化。", "- 否：仅凭单日价格波动或未交叉验证新闻不修改投资论文。", "", "以上内容仅供研究参考，不构成任何投资建议。"])
+    lines.extend(
+        [
+            "",
+            "## confirmed_trigger（已确认触发）",
+            "",
+            "- 暂无可由当前结构化 Evidence 与一手披露共同确认的触发因素。",
+            "",
+            "## plausibly_related（可能相关）",
+            "",
+            "- 上述公开事件仅作为待交叉验证的相关线索，不作为因果结论。",
+            "",
+            "## market_wide_factor（市场共同因素）",
+            "",
+            "- 指数与同行同步表现证据不足，当前无法确认。",
+            "",
+            "## unsupported_speculation（无证据猜测）",
+            "",
+            "- 新闻标题、单日涨跌和未核验叙事不得升级为异动原因。",
+            "",
+            "## unknown（未知）",
+            "",
+            "- 未被一手证据或市场共同因子解释的部分保持未知。",
+            "",
+            "## 归因边界",
+            "",
+            "当前证据可确认价格、量价和公开事件样本；未取得指数/同行同步表现和原始公告前，不将事件断言为异动主因。",
+            "",
+            "## 是否触发论文重审",
+            "",
+            "- 是：若 C2/C3/C6/C7 的核心事实或原有证伪条件发生变化。",
+            "- 否：仅凭单日价格波动或未交叉验证新闻不修改投资论文。",
+            "",
+            "以上内容仅供研究参考，不构成任何投资建议。",
+        ]
+    )
     return "\n".join(lines)
 
 

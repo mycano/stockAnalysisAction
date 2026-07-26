@@ -17,9 +17,12 @@ class ResearchCommandServices:
     build_fund_workspace: Callable[..., tuple[dict[str, Any], Path]]
     render_stock_review: Callable[[dict[str, Any]], str]
     render_earnings_review: Callable[[dict[str, Any]], str]
-    render_price_move: Callable[[dict[str, Any]], str]
+    render_price_move: Callable[..., str]
     create_thesis: Callable[..., tuple[dict[str, Any], Path]]
     review_thesis: Callable[..., tuple[dict[str, Any] | None, Path, list[str]]]
+    update_thesis: Callable[..., tuple[dict[str, Any] | None, Path, list[str]]]
+    invalidate_thesis: Callable[..., tuple[dict[str, Any] | None, Path, list[str]]]
+    compare_theses: Callable[..., dict[str, Any]]
     render_thesis_create: Callable[[dict[str, Any], Path], str]
     render_thesis_review: Callable[[dict[str, Any] | None, Path, list[str]], str]
     load_reached_primary_evidence: Callable[..., dict[str, list[dict[str, Any]]]]
@@ -88,10 +91,38 @@ def run_research_command(
     elif args.market == "earnings":
         print(services.render_earnings_review(pack))
     elif args.market == "price-move":
-        print(services.render_price_move(pack))
+        print(
+            services.render_price_move(
+                pack,
+                window_type=args.window_type,
+                start_date=args.start_date,
+                event=args.event,
+            )
+        )
     elif args.market == "thesis-create":
-        thesis, path = services.create_thesis(pack)
+        try:
+            thesis, path = services.create_thesis(pack)
+        except ValueError as exc:
+            parser.error(str(exc))
         print(services.render_thesis_create(thesis, path))
+    elif args.market in {"thesis-review", "thesis-update", "thesis-invalidate"}:
+        if args.market == "thesis-review":
+            thesis, path, changes = services.review_thesis(pack)
+        elif args.market == "thesis-update":
+            thesis, path, changes = services.update_thesis(pack, args.reason)
+        else:
+            if not args.reason:
+                parser.error("--reason is required when --market thesis-invalidate")
+            thesis, path, changes = services.invalidate_thesis(pack, args.reason)
+        print(services.render_thesis_review(thesis, path, changes))
+    elif args.market == "thesis-compare":
+        if args.from_version is None or args.to_version is None:
+            parser.error("--from-version and --to-version are required when --market thesis-compare")
+        try:
+            comparison = services.compare_theses(args.symbol, args.from_version, args.to_version)
+        except ValueError as exc:
+            parser.error(str(exc))
+        print(json.dumps(comparison, ensure_ascii=False, indent=2))
     elif args.market == "research":
         requested_lenses = tuple(item.strip() for item in (args.lenses or "").split(",") if item.strip())
         if args.lens and not requested_lenses:
@@ -116,10 +147,6 @@ def run_research_command(
         report_path = workspace / manifest["artifacts"]["institutional_report"]["path"]
         print(report_path.read_text(encoding="utf-8"))
         print(f"Research Workspace: {workspace}")
-    else:
-        thesis, path, changes = services.review_thesis(pack)
-        print(services.render_thesis_review(thesis, path, changes))
-
     if args.emit_evidence:
         (Path.cwd() / f"company_evidence_{pack['symbol']}_{trade_date}.json").write_text(
             json.dumps(pack, ensure_ascii=False, indent=2) + "\n",

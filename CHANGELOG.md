@@ -1,5 +1,15 @@
 # Changelog
 
+## v4.17.0 - 2026-07-26
+
+- 固定 Agent 正式架构为 `HostRequest → ResolvedRequest → Workflow`：宿主生成结构化请求，Python Router 只校验对象并进行确定性路由；`--input` 仅保留给调试与测试 Fixture。
+- 将正式入口收敛为 `market`、`snapshot`、`analyze`、`earnings`、`move`、`screen`、`portfolio`、`thesis` 八个命令；旧入口在兼容期内只转发，`data-diagnose` 保持独立运维入口。
+- 新增 canonical v2 catalog、JSON Schema、Codex Skills、Codex Prompts、Claude Commands 与 Generic Skills；所有生成物携带 catalog hash 与统一 `x-stock-analysis-*` metadata，CI 检查生成漂移。
+- 新增跨平台 `stock-analysis-agent install|doctor|uninstall|dry-run`，使用统一 manifest、安全命名和用户文件保护，并将所需生成资产打入 wheel。
+- 新增确定性路由原因、阻断/重定向、输出契约与 run manifest 校验；280 条 Fixture 覆盖正常、歧义、跨命令、缺参、双语与恶意输入。
+- Thesis 的 create/review/update/compare/invalidate 改为显式动作；每次写入追加不可变版本和独立审计事件，不再静默覆盖历史。
+- 本版本止于 P1。Hermes 专用 adapter、宿主 Web/PDF 增强、默认关闭的匿名遥测和基于真实失败样本的路由优化整体移至 Future Roadmap。
+
 ## v4.16.0 - 2026-07-23
 
 - `--market research` 的公司与基金路径新增确定性命题发布层。每位 lens 分离 `publishable_claims` 与 `unpublished_questions`，committee 只综合达到离散证据门槛的命题；普通缺口不再被解释为看空、中性、保守或观望信号。

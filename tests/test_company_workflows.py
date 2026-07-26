@@ -1,9 +1,10 @@
 import json
-from pathlib import Path
+
+import pytest
 
 from stock_analysis import app, company_evidence
 from stock_analysis.models import QuoteData
-from stock_analysis.thesis import create_thesis, review_thesis
+from stock_analysis.thesis import compare_theses, create_thesis, review_thesis, thesis_version_path
 from stock_analysis.workflows import render_earnings_review, render_price_move, render_stock_review
 
 
@@ -168,8 +169,47 @@ def test_thesis_create_and_review_persist_only_structured_evidence(monkeypatch, 
     assert path.exists()
     assert thesis["status"] == "under_review"
     assert reviewed is not None
+    assert thesis["version"] == 1
+    assert reviewed["version"] == 2
     assert "未发现可由当前结构化 Evidence 自动判定的变化" in changes
     assert json.loads(path.read_text(encoding="utf-8"))["symbol"] == "600519"
+    assert thesis_version_path("600519", 1).exists()
+    assert thesis_version_path("600519", 2).exists()
+    comparison = compare_theses("600519", 1, 2)
+    assert comparison["from"]["version"] == 1
+    assert comparison["to"]["version"] == 2
+
+    with pytest.raises(ValueError, match="论文已存在"):
+        create_thesis(pack)
+
+
+def test_thesis_review_migrates_legacy_latest_without_losing_v1(monkeypatch, tmp_path):
+    pack = _company_pack(monkeypatch)
+    monkeypatch.setenv("STOCK_ANALYSIS_THESIS_DIR", str(tmp_path))
+    legacy = {
+        "schema_version": "1.0",
+        "symbol": "600519",
+        "name": "贵州茅台",
+        "created_at": "2025-01-01T00:00:00+00:00",
+        "updated_at": "2025-01-01T00:00:00+00:00",
+        "status": "under_review",
+        "thesis": {"core_assumptions": ["legacy"]},
+        "evidence_snapshot": {
+            "trade_date": "20250101",
+            "coverage": 50,
+            "available_modules": [],
+            "missing_modules": ["C1"],
+        },
+    }
+    (tmp_path / "600519.json").write_text(
+        json.dumps(legacy, ensure_ascii=False), encoding="utf-8"
+    )
+
+    reviewed, _, _ = review_thesis(pack)
+
+    assert reviewed is not None and reviewed["version"] == 2
+    archived = json.loads(thesis_version_path("600519", 1).read_text(encoding="utf-8"))
+    assert archived["thesis"]["core_assumptions"] == ["legacy"]
 
 
 def test_cli_stock_review_emits_company_evidence(monkeypatch, tmp_path, capsys):
@@ -210,13 +250,3 @@ def test_cli_passes_expectations_file_to_company_research(monkeypatch, tmp_path,
 
     assert captured["expectations"] == assumptions
     assert "公司研究" in capsys.readouterr().out
-
-
-def test_agent_entrypoints_are_generated_from_canonical_catalog():
-    root = Path(__file__).resolve().parents[1]
-    catalog = json.loads((root / "agent-workflows" / "commands.json").read_text(encoding="utf-8"))
-
-    for command in catalog:
-        assert (root / "codex-skills" / command["id"] / "SKILL.md").exists()
-        assert (root / "codex-prompts" / f"{command['id']}.md").exists()
-        assert (root / "claude-commands" / f"{command['id']}.md").exists()

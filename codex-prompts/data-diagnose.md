@@ -1,21 +1,26 @@
 ---
-name: data-diagnose
-description: 检查当前数据源、浏览器接管边界和缺失字段。
+name: "data-diagnose"
+description: "检查命令协议、生成入口和运行环境。"
+managed_by: "stock-analysis"
+schema_version: "2.0"
+command_id: "stock-analysis.data-diagnose"
+catalog_hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+host_target: "codex-prompt"
+x-stock-analysis-managed: true
+x-stock-analysis-schema: "agent-entrypoint/v2"
+x-stock-analysis-command: "data-diagnose"
+x-stock-analysis-catalog-hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+operational: true
 ---
 
-# /prompts:data-diagnose Codex custom prompt
+# /data-diagnose
 
-检查当前数据源、浏览器接管边界和缺失字段。
+检查命令协议、生成入口和运行环境。
 
-Run:
+这是运维入口，不属于八个研究命令，也不接受或模拟 `HostRequest`。以独立 argv 元素运行：
 
-```bash
-stock-analysis --market diagnose
+```text
+stock-analysis-agent doctor all
 ```
 
-把不可用数据源、fallback 与下一步补数路径明确告知用户。
-
-Always preserve Evidence Pack source events and state missing evidence explicitly.
-If Company Evidence marks agent_primary_evidence_reach as recommended, invoke the bundled
-stock-analysis-primary-evidence-reach Skill, follow primary_evidence_requests, and rerun with
---primary-evidence-file. Agent Reach is optional because the bundled fallback can use host web/PDF tools.
+只报告诊断事实、缺失配置和安全修复建议；不得借此执行研究工作流。

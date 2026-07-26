@@ -28,8 +28,16 @@
 
 - Keep the GitHub Actions daily recap example aligned with the current Evidence Pack contract.
 - Add a cron example for local market notes.
-- Expand Codex/Hermes/Claude Code recipes that verify conclusions against evidence and claim JSON.
 - Consider MCP only after the CLI and evidence contract are stable.
+
+### Future Roadmap (post-v4.17)
+
+The following four items were intentionally moved out of the v4.17 P0/P1 release so it stays focused on the command protocol, multi-host compatibility, and deterministic routing:
+
+- Add dedicated Hermes adapters on top of the stable HostRequest protocol.
+- Add host-side Web/PDF enrichment without moving evidence mutation into the Python Router.
+- Add opt-in anonymous telemetry; it must remain disabled by default.
+- Use real, explicitly collected routing failures to optimize route selection without weakening deterministic rules.
 
 ## Community
 

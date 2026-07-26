@@ -6,7 +6,7 @@
 </div>
 
 <p align="center">
-  <a href="https://github.com/AdvancingTitans/stock-analysis/releases/tag/v4.16.0"><img alt="Release v4.16.0" src="https://img.shields.io/badge/release-v4.16.0-65e6a5"></a>
+  <a href="https://github.com/AdvancingTitans/stock-analysis/releases/tag/v4.17.0"><img alt="Release v4.17.0" src="https://img.shields.io/badge/release-v4.17.0-65e6a5"></a>
   <a href="https://pypi.org/project/stock-analysis/"><img alt="PyPI" src="https://img.shields.io/pypi/v/stock-analysis"></a>
   <a href="https://github.com/AdvancingTitans/stock-analysis/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/AdvancingTitans/stock-analysis/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://www.python.org/"><img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9%2B-3776ab"></a>
@@ -146,6 +146,32 @@ stock-analysis --market research --symbol 600519 --expectations-file examples/co
 | 运行可恢复的机构化研究流程 | 需要阶段产物可中断恢复、审计，并与上次研究比较 | `/research-workspace` | `--market research --symbol` |
 
 Claude Code 原生支持 `/command` 入口。Codex 的 Custom Prompt 显示为 `/prompts:stock-review`；安装生成的 Skill 后，Agent 可以根据 Skill 描述把“分析腾讯”这类自然语言请求匹配到相应 Skill，并执行其中的确定性命令。意图识别发生在宿主 Agent，而非 `stock-analysis` Python 包内部。所有入口均从同一份 canonical catalog 生成，避免工作流漂移。
+
+### Agent 命令协议 v2
+
+v4.17 将八个名称固定为正式 Agent 入口：`/market`、`/snapshot`、`/analyze`、`/earnings`、`/move`、`/screen`、`/portfolio`、`/thesis`。`/market-recap`、`/stock-review` 等旧名称继续转发一至两个大版本；`/data-diagnose` 保持运维入口。
+
+正式运行边界固定为：
+
+```mermaid
+flowchart LR
+    H["HostRequest\n由 Codex / Claude / 其他宿主结构化"] --> R["ResolvedRequest\n校验 + 确定性路由"]
+    R --> W["Workflow\nargv 数组 + 输出契约"]
+```
+
+宿主负责生成结构化 `HostRequest`；Python Router 只消费该对象，按显式参数和能力需求生成 `ResolvedRequest`，正式链路不解析自由文本。`--input` 仅供调试与测试 Fixture 使用。
+
+```bash
+# 安全安装生成的 Codex Skills + Prompts 与 Claude commands。
+stock-analysis-agent install all
+stock-analysis-agent doctor all
+
+# 正式路由：传入一个结构化请求。
+stock-analysis agent route --request '{"schema_version":"2.0","command":"analyze","arguments":{"asset":"600519"}}'
+stock-analysis agent run --request request.json
+```
+
+每个生成文件都携带 catalog hash、命令 id 与 schema metadata。安装器使用 `${STOCK_ANALYSIS_HOME:-~/.stock-analysis}` 下的统一 manifest，不覆盖非托管文件，并提供 `dry-run`、`doctor` 和受保护的 `uninstall`。CI 会同时校验 canonical catalog、JSON Schema、宿主入口和 280 条双语/歧义/恶意路由 Fixture 是否漂移。
 
 ## 系统如何工作
 
@@ -395,6 +421,9 @@ stock-analysis --market price-move --symbol 600519 --emit-evidence
 # 建立并复查本地结构化投资论文快照
 stock-analysis --market thesis-create --symbol 600519
 stock-analysis --market thesis-review --symbol 600519
+stock-analysis --market thesis-update --symbol 600519
+stock-analysis --market thesis-compare --symbol 600519 --from-version 1 --to-version 2
+stock-analysis --market thesis-invalidate --symbol 600519 --reason "核心假设已被一手证据否定"
 
 # 创建或恢复分阶段机构研究工作区
 stock-analysis --market research --symbol 600519
@@ -575,7 +604,7 @@ Lens 会改变证据优先级和叙事结构，但不会绕过数据质量规则
 
 ### 内置 lens 与 committee 边界
 
-当前 CLI 版本为 `4.16.0`。
+当前 CLI 版本为 `4.17.0`。
 
 `research` 报告保留 4.5 系列的中文投委会分析密度，并把可恢复、可追溯的研究状态留在 Workspace 内部。个股沿用“执行摘要 → 行情与商业质量 → 财务增长 → 治理与资本配置 → 估值情景 → 投委会审议 → 风险催化 → 条件化动作”；基金沿用“执行摘要 → 产品与指数契约 → 持仓暴露 → 业绩风险 → 估值与交易实现 → 投委会审议 → 风险催化 → 条件化动作”。每位 lens 把结果隔离为 `publishable_claims` 和 `unpublished_questions`，committee 只消费前者。普通证据缺失只过滤或缩窄相关命题，不得被解释成看空、中性、保守、观望或等待信号。
 
@@ -612,6 +641,10 @@ Company 一手披露采用可扩展的“官方 PDF → 指定页文本 → JSON
 - 把项目提交到匹配度高的 Awesome List 或 Agent 工具目录。
 
 请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 和 [ROADMAP.md](ROADMAP.md)。
+
+## Future Roadmap
+
+v4.17 明确只做到 P1，保持本次版本聚焦“命令协议 + 多宿主兼容 + 确定性路由”。Hermes 专用 adapter、宿主侧 Web/PDF 增强、默认关闭的 opt-in 匿名遥测，以及基于真实失败样本的路由优化，四项整体移至后续版本。详见 [ROADMAP.md](ROADMAP.md)。
 
 ## Awesome List 简介
 

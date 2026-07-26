@@ -1,0 +1,26 @@
+---
+name: "{{name}}"
+description: "{{description}}"
+managed_by: "stock-analysis"
+schema_version: "{{schema_version}}"
+command_id: "{{command_id}}"
+catalog_hash: "{{catalog_hash}}"
+host_target: "{{host_target}}"
+x-stock-analysis-managed: true
+x-stock-analysis-schema: "agent-entrypoint/v2"
+x-stock-analysis-command: "{{x_command}}"
+x-stock-analysis-catalog-hash: "{{catalog_hash}}"
+operational: true
+---
+
+# {{heading}}
+
+{{description}}
+
+这是运维入口，不属于八个研究命令，也不接受或模拟 `HostRequest`。以独立 argv 元素运行：
+
+```text
+{{argv}}
+```
+
+只报告诊断事实、缺失配置和安全修复建议；不得借此执行研究工作流。

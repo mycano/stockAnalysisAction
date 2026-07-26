@@ -1,0 +1,406 @@
+{
+  "schema_version": "2.0",
+  "fixture_format": "HostRequestFixtureMatrix/v1",
+  "category_minimums": {
+    "normal": 10,
+    "ambiguous": 5,
+    "cross_command": 5,
+    "missing_required": 5,
+    "mixed_language": 5,
+    "malicious": 5
+  },
+  "commands": {
+    "market": {
+      "normal": [
+        {"id":"market-normal-01","arguments":{},"expected":"route"},
+        {"id":"market-normal-02","arguments":{"market":"a"},"expected":"route"},
+        {"id":"market-normal-03","arguments":{"market":"hk"},"expected":"route"},
+        {"id":"market-normal-04","arguments":{"market":"us"},"expected":"route"},
+        {"id":"market-normal-05","arguments":{"market":"global"},"expected":"route"},
+        {"id":"market-normal-06","arguments":{"session":"pre-market"},"expected":"route"},
+        {"id":"market-normal-07","arguments":{"session":"intraday"},"expected":"route"},
+        {"id":"market-normal-08","arguments":{"session":"after-market"},"expected":"route"},
+        {"id":"market-normal-09","arguments":{"date":"20260724"},"expected":"route"},
+        {"id":"market-normal-10","arguments":{"scope":"global"},"expected":"route"}
+      ],
+      "ambiguous": [
+        {"id":"market-ambiguous-01","arguments":{"intent":"看看市场"},"expected":"clarify_or_default"},
+        {"id":"market-ambiguous-02","arguments":{"intent":"今天怎么样"},"expected":"clarify_or_default"},
+        {"id":"market-ambiguous-03","arguments":{"market":"auto"},"expected":"clarify_or_default"},
+        {"id":"market-ambiguous-04","arguments":{"session":"auto"},"expected":"clarify_or_default"},
+        {"id":"market-ambiguous-05","arguments":{"intent":"recap please"},"expected":"clarify_or_default"}
+      ],
+      "cross_command": [
+        {"id":"market-cross-01","arguments":{"intent":"single_asset_move","asset":"600519"},"expected":"redirect:move"},
+        {"id":"market-cross-02","arguments":{"intent":"single_asset_analysis","asset":"AAPL"},"expected":"redirect:analyze"},
+        {"id":"market-cross-03","arguments":{"intent":"single_asset_move","asset":"0700.HK"},"expected":"redirect:move"},
+        {"id":"market-cross-04","arguments":{"intent":"single_asset_analysis","asset":"MSFT"},"expected":"redirect:analyze"},
+        {"id":"market-cross-05","arguments":{"intent":"single_asset_move","asset":"510300"},"expected":"redirect:move"}
+      ],
+      "missing_required": [
+        {"id":"market-missing-01","request":{"arguments":{}},"expected":"invalid"},
+        {"id":"market-missing-02","request":{"schema_version":"2.0","arguments":{}},"expected":"invalid"},
+        {"id":"market-missing-03","request":{"schema_version":"2.0","command":"market"},"expected":"invalid"},
+        {"id":"market-missing-04","request":{},"expected":"invalid"},
+        {"id":"market-missing-05","request":{"schema_version":"1.0","command":"market","arguments":{}},"expected":"invalid"}
+      ],
+      "mixed_language": [
+        {"id":"market-mixed-01","arguments":{"intent":"A股 market recap"},"expected":"route"},
+        {"id":"market-mixed-02","arguments":{"intent":"美股盘后 after-market"},"expected":"route"},
+        {"id":"market-mixed-03","arguments":{"intent":"global 市场复盘","scope":"global"},"expected":"route"},
+        {"id":"market-mixed-04","arguments":{"intent":"HK intraday 看盘"},"expected":"route"},
+        {"id":"market-mixed-05","arguments":{"intent":"今日 market overview"},"expected":"route"}
+      ],
+      "malicious": [
+        {"id":"market-malicious-01","arguments":{"market":"a;rm -rf /"},"expected":"invalid"},
+        {"id":"market-malicious-02","arguments":{"date":"$(whoami)"},"expected":"invalid"},
+        {"id":"market-malicious-03","arguments":{"session":"`id`"},"expected":"invalid"},
+        {"id":"market-malicious-04","arguments":{"scope":"../../etc/passwd"},"expected":"invalid"},
+        {"id":"market-malicious-05","arguments":{"market":{"$ne":"a"}},"expected":"invalid"}
+      ]
+    },
+    "snapshot": {
+      "normal": [
+        {"id":"snapshot-normal-01","arguments":{"asset":"600519"},"expected":"route"},
+        {"id":"snapshot-normal-02","arguments":{"asset":"AAPL"},"expected":"route"},
+        {"id":"snapshot-normal-03","arguments":{"asset":"0700.HK"},"expected":"route"},
+        {"id":"snapshot-normal-04","arguments":{"asset":"510300","asset_type":"fund"},"expected":"route"},
+        {"id":"snapshot-normal-05","arguments":{"asset":"MSFT","asset_type":"company"},"expected":"route"},
+        {"id":"snapshot-normal-06","arguments":{"asset":"000001.SZ"},"expected":"route"},
+        {"id":"snapshot-normal-07","arguments":{"asset":"9988.HK"},"expected":"route"},
+        {"id":"snapshot-normal-08","arguments":{"asset":"SPY","asset_type":"fund"},"expected":"route"},
+        {"id":"snapshot-normal-09","arguments":{"asset":"7203.T","date":"20260724"},"expected":"route"},
+        {"id":"snapshot-normal-10","arguments":{"asset":"005930.KS"},"expected":"route"}
+      ],
+      "ambiguous": [
+        {"id":"snapshot-ambiguous-01","arguments":{"asset":"腾讯"},"expected":"clarify_or_route"},
+        {"id":"snapshot-ambiguous-02","arguments":{"asset":"苹果"},"expected":"clarify_or_route"},
+        {"id":"snapshot-ambiguous-03","arguments":{"asset":"300ETF"},"expected":"clarify_or_route"},
+        {"id":"snapshot-ambiguous-04","arguments":{"asset":"ABC"},"expected":"clarify_or_route"},
+        {"id":"snapshot-ambiguous-05","arguments":{"asset":"000001","asset_type":"auto"},"expected":"clarify_or_route"}
+      ],
+      "cross_command": [
+        {"id":"snapshot-cross-01","arguments":{"asset":"600519","intent":"valuation_or_decision"},"expected":"redirect:analyze"},
+        {"id":"snapshot-cross-02","arguments":{"asset":"AAPL","intent":"price_move_cause"},"expected":"redirect:move"},
+        {"id":"snapshot-cross-03","arguments":{"asset":"0700.HK","intent":"earnings_change"},"expected":"redirect:earnings"},
+        {"id":"snapshot-cross-04","arguments":{"asset":"MSFT","intent":"valuation_or_decision"},"expected":"redirect:analyze"},
+        {"id":"snapshot-cross-05","arguments":{"asset":"510300","intent":"price_move_cause"},"expected":"redirect:move"}
+      ],
+      "missing_required": [
+        {"id":"snapshot-missing-01","arguments":{},"expected":"blocked"},
+        {"id":"snapshot-missing-02","arguments":{"asset":""},"expected":"blocked"},
+        {"id":"snapshot-missing-03","request":{"schema_version":"2.0","command":"snapshot"},"expected":"invalid"},
+        {"id":"snapshot-missing-04","request":{"command":"snapshot","arguments":{"asset":"AAPL"}},"expected":"invalid"},
+        {"id":"snapshot-missing-05","request":{"schema_version":"2.0","arguments":{"asset":"AAPL"}},"expected":"invalid"}
+      ],
+      "mixed_language": [
+        {"id":"snapshot-mixed-01","arguments":{"asset":"贵州茅台 600519","intent":"price snapshot"},"expected":"route"},
+        {"id":"snapshot-mixed-02","arguments":{"asset":"Tencent 0700.HK","intent":"事实快照"},"expected":"route"},
+        {"id":"snapshot-mixed-03","arguments":{"asset":"AAPL","intent":"看一下报价 quote"},"expected":"route"},
+        {"id":"snapshot-mixed-04","arguments":{"asset":"沪深300 ETF","intent":"NAV 快照"},"expected":"route"},
+        {"id":"snapshot-mixed-05","arguments":{"asset":"Samsung 005930.KS","intent":"量价 facts"},"expected":"route"}
+      ],
+      "malicious": [
+        {"id":"snapshot-malicious-01","arguments":{"asset":"AAPL; rm -rf /"},"expected":"blocked"},
+        {"id":"snapshot-malicious-02","arguments":{"asset":"$(cat /etc/passwd)"},"expected":"blocked"},
+        {"id":"snapshot-malicious-03","arguments":{"asset":"`whoami`"},"expected":"blocked"},
+        {"id":"snapshot-malicious-04","arguments":{"asset":["AAPL"]},"expected":"invalid"},
+        {"id":"snapshot-malicious-05","arguments":{"asset":"../../secret"},"expected":"blocked"}
+      ]
+    },
+    "analyze": {
+      "normal": [
+        {"id":"analyze-normal-01","arguments":{"asset":"600519"},"expected":"route:standard"},
+        {"id":"analyze-normal-02","arguments":{"asset":"AAPL","depth":"quick"},"expected":"route:quick"},
+        {"id":"analyze-normal-03","arguments":{"asset":"0700.HK","depth":"deep"},"expected":"route:deep"},
+        {"id":"analyze-normal-04","arguments":{"asset":"510300","asset_type":"fund"},"expected":"route:standard"},
+        {"id":"analyze-normal-05","arguments":{"asset":"MSFT","capabilities":["committee"]},"expected":"route:deep"},
+        {"id":"analyze-normal-06","arguments":{"asset":"9988.HK","capabilities":["reverse_valuation"]},"expected":"route:deep"},
+        {"id":"analyze-normal-07","arguments":{"asset":"SPY","asset_type":"fund","capabilities":["fund_lookthrough"]},"expected":"route:deep"},
+        {"id":"analyze-normal-08","arguments":{"asset":"7203.T","depth":"standard"},"expected":"route:standard"},
+        {"id":"analyze-normal-09","arguments":{"asset":"005930.KS","research_question":"moat"},"expected":"route:standard"},
+        {"id":"analyze-normal-10","arguments":{"asset":"000001.SZ","capabilities":[]},"expected":"route:standard"}
+      ],
+      "ambiguous": [
+        {"id":"analyze-ambiguous-01","arguments":{"asset":"苹果"},"expected":"clarify_or_route"},
+        {"id":"analyze-ambiguous-02","arguments":{"asset":"腾讯","intent":"分析一下"},"expected":"clarify_or_route"},
+        {"id":"analyze-ambiguous-03","arguments":{"asset":"ABC","depth":"standard"},"expected":"clarify_or_route"},
+        {"id":"analyze-ambiguous-04","arguments":{"asset":"000001","asset_type":"auto"},"expected":"clarify_or_route"},
+        {"id":"analyze-ambiguous-05","arguments":{"asset":"ETF","intent":"deep dive"},"expected":"clarify_or_route"}
+      ],
+      "cross_command": [
+        {"id":"analyze-cross-01","arguments":{"asset":"600519","intent":"facts_only"},"expected":"redirect:snapshot"},
+        {"id":"analyze-cross-02","arguments":{"asset":"AAPL","intent":"earnings_only"},"expected":"redirect:earnings"},
+        {"id":"analyze-cross-03","arguments":{"asset":"0700.HK","intent":"price_move_only"},"expected":"redirect:move"},
+        {"id":"analyze-cross-04","arguments":{"asset":"510300","intent":"facts_only"},"expected":"redirect:snapshot"},
+        {"id":"analyze-cross-05","arguments":{"asset":"MSFT","intent":"price_move_only"},"expected":"redirect:move"}
+      ],
+      "missing_required": [
+        {"id":"analyze-missing-01","arguments":{},"expected":"blocked"},
+        {"id":"analyze-missing-02","arguments":{"depth":"deep"},"expected":"blocked"},
+        {"id":"analyze-missing-03","arguments":{"asset":""},"expected":"blocked"},
+        {"id":"analyze-missing-04","request":{"schema_version":"2.0","command":"analyze"},"expected":"invalid"},
+        {"id":"analyze-missing-05","request":{"schema_version":"2.0","arguments":{"asset":"AAPL"}},"expected":"invalid"}
+      ],
+      "mixed_language": [
+        {"id":"analyze-mixed-01","arguments":{"asset":"贵州茅台 600519","intent":"deep analysis"},"expected":"route"},
+        {"id":"analyze-mixed-02","arguments":{"asset":"Tencent 0700.HK","intent":"标准研究"},"expected":"route"},
+        {"id":"analyze-mixed-03","arguments":{"asset":"AAPL","research_question":"护城河 moat"},"expected":"route"},
+        {"id":"analyze-mixed-04","arguments":{"asset":"沪深300 ETF","capabilities":["fund_lookthrough"]},"expected":"route:deep"},
+        {"id":"analyze-mixed-05","arguments":{"asset":"Samsung","intent":"quick 快速复核","depth":"quick"},"expected":"route:quick"}
+      ],
+      "malicious": [
+        {"id":"analyze-malicious-01","arguments":{"asset":"AAPL;rm -rf /"},"expected":"blocked"},
+        {"id":"analyze-malicious-02","arguments":{"asset":"$(whoami)"},"expected":"blocked"},
+        {"id":"analyze-malicious-03","arguments":{"asset":"AAPL","depth":"deep;id"},"expected":"invalid"},
+        {"id":"analyze-malicious-04","arguments":{"asset":"AAPL","capabilities":"committee"},"expected":"invalid"},
+        {"id":"analyze-malicious-05","arguments":{"asset":{"$gt":""}},"expected":"invalid"}
+      ]
+    },
+    "earnings": {
+      "normal": [
+        {"id":"earnings-normal-01","arguments":{"asset":"600519"},"expected":"route"},
+        {"id":"earnings-normal-02","arguments":{"asset":"AAPL","mode":"facts"},"expected":"route:facts"},
+        {"id":"earnings-normal-03","arguments":{"asset":"0700.HK","mode":"standard"},"expected":"route:standard"},
+        {"id":"earnings-normal-04","arguments":{"asset":"MSFT","mode":"thesis-impact"},"expected":"route:thesis-impact"},
+        {"id":"earnings-normal-05","arguments":{"asset":"9988.HK","period":"2026Q2"},"expected":"route"},
+        {"id":"earnings-normal-06","arguments":{"asset":"7203.T","period":"FY2026"},"expected":"route"},
+        {"id":"earnings-normal-07","arguments":{"asset":"005930.KS","comparison_period":"2025Q2"},"expected":"route"},
+        {"id":"earnings-normal-08","arguments":{"asset":"000001.SZ","date":"20260724"},"expected":"route"},
+        {"id":"earnings-normal-09","arguments":{"asset":"NVDA","period":"FY2027Q1","comparison_period":"FY2026Q1"},"expected":"route"},
+        {"id":"earnings-normal-10","arguments":{"asset":"BABA","mode":"facts"},"expected":"route:facts"}
+      ],
+      "ambiguous": [
+        {"id":"earnings-ambiguous-01","arguments":{"asset":"苹果","period":"最近一季"},"expected":"clarify_or_route"},
+        {"id":"earnings-ambiguous-02","arguments":{"asset":"腾讯","intent":"业绩如何"},"expected":"clarify_or_route"},
+        {"id":"earnings-ambiguous-03","arguments":{"asset":"ABC","period":"latest"},"expected":"clarify_or_route"},
+        {"id":"earnings-ambiguous-04","arguments":{"asset":"000001","comparison_period":"去年"},"expected":"clarify_or_route"},
+        {"id":"earnings-ambiguous-05","arguments":{"asset":"MSFT","intent":"results"},"expected":"clarify_or_route"}
+      ],
+      "cross_command": [
+        {"id":"earnings-cross-01","arguments":{"asset":"600519","intent":"full_analysis"},"expected":"redirect:analyze"},
+        {"id":"earnings-cross-02","arguments":{"asset":"AAPL","intent":"full_analysis"},"expected":"redirect:analyze"},
+        {"id":"earnings-cross-03","arguments":{"asset":"0700.HK","intent":"full_analysis"},"expected":"redirect:analyze"},
+        {"id":"earnings-cross-04","arguments":{"asset":"MSFT","intent":"full_analysis"},"expected":"redirect:analyze"},
+        {"id":"earnings-cross-05","arguments":{"asset":"9988.HK","intent":"full_analysis"},"expected":"redirect:analyze"}
+      ],
+      "missing_required": [
+        {"id":"earnings-missing-01","arguments":{},"expected":"blocked"},
+        {"id":"earnings-missing-02","arguments":{"mode":"facts"},"expected":"blocked"},
+        {"id":"earnings-missing-03","arguments":{"asset":""},"expected":"blocked"},
+        {"id":"earnings-missing-04","request":{"schema_version":"2.0","command":"earnings"},"expected":"invalid"},
+        {"id":"earnings-missing-05","request":{"command":"earnings","arguments":{"asset":"AAPL"}},"expected":"invalid"}
+      ],
+      "mixed_language": [
+        {"id":"earnings-mixed-01","arguments":{"asset":"贵州茅台","intent":"earnings facts"},"expected":"route"},
+        {"id":"earnings-mixed-02","arguments":{"asset":"Tencent","period":"2026 中报"},"expected":"route"},
+        {"id":"earnings-mixed-03","arguments":{"asset":"AAPL","intent":"财报 thesis impact","mode":"thesis-impact"},"expected":"route"},
+        {"id":"earnings-mixed-04","arguments":{"asset":"Samsung","comparison_period":"去年 Q2"},"expected":"route"},
+        {"id":"earnings-mixed-05","arguments":{"asset":"NVDA","intent":"results 标准复核"},"expected":"route"}
+      ],
+      "malicious": [
+        {"id":"earnings-malicious-01","arguments":{"asset":"AAPL;id"},"expected":"blocked"},
+        {"id":"earnings-malicious-02","arguments":{"asset":"$(whoami)"},"expected":"blocked"},
+        {"id":"earnings-malicious-03","arguments":{"asset":"AAPL","mode":"facts;rm"},"expected":"invalid"},
+        {"id":"earnings-malicious-04","arguments":{"asset":"AAPL","date":"../../etc/passwd"},"expected":"invalid"},
+        {"id":"earnings-malicious-05","arguments":{"asset":["AAPL"]},"expected":"invalid"}
+      ]
+    },
+    "move": {
+      "normal": [
+        {"id":"move-normal-01","arguments":{"asset":"600519"},"expected":"route:single-session"},
+        {"id":"move-normal-02","arguments":{"asset":"AAPL","window_type":"single-session"},"expected":"route:single-session"},
+        {"id":"move-normal-03","arguments":{"asset":"0700.HK","window_type":"multi-session","start_date":"20260720","end_date":"20260724"},"expected":"route:multi-session"},
+        {"id":"move-normal-04","arguments":{"asset":"MSFT","window_type":"event-window","event":"earnings","end_date":"20260724"},"expected":"route:event-window"},
+        {"id":"move-normal-05","arguments":{"asset":"9988.HK","date":"20260724"},"expected":"route"},
+        {"id":"move-normal-06","arguments":{"asset":"NVDA","causal_claim":"earnings"},"expected":"route"},
+        {"id":"move-normal-07","arguments":{"asset":"7203.T","window_type":"multi-session","start_date":"20260701","end_date":"20260724"},"expected":"route"},
+        {"id":"move-normal-08","arguments":{"asset":"005930.KS","window_type":"event-window","event":"product launch","end_date":"20260724"},"expected":"route"},
+        {"id":"move-normal-09","arguments":{"asset":"000001.SZ","date":"20260724"},"expected":"route"},
+        {"id":"move-normal-10","arguments":{"asset":"SPY","window_type":"single-session"},"expected":"route"}
+      ],
+      "ambiguous": [
+        {"id":"move-ambiguous-01","arguments":{"asset":"苹果","intent":"为什么涨"},"expected":"clarify_or_route"},
+        {"id":"move-ambiguous-02","arguments":{"asset":"腾讯","event":"消息"},"expected":"clarify_or_route"},
+        {"id":"move-ambiguous-03","arguments":{"asset":"ABC","intent":"最近跌了"},"expected":"clarify_or_route"},
+        {"id":"move-ambiguous-04","arguments":{"asset":"000001","window_type":"multi-session"},"expected":"clarify_or_block"},
+        {"id":"move-ambiguous-05","arguments":{"asset":"NVDA","window_type":"event-window"},"expected":"clarify_or_block"}
+      ],
+      "cross_command": [
+        {"id":"move-cross-01","arguments":{"asset":"600519","intent":"full_analysis"},"expected":"redirect:analyze"},
+        {"id":"move-cross-02","arguments":{"asset":"AAPL","intent":"full_analysis"},"expected":"redirect:analyze"},
+        {"id":"move-cross-03","arguments":{"asset":"0700.HK","intent":"full_analysis"},"expected":"redirect:analyze"},
+        {"id":"move-cross-04","arguments":{"asset":"MSFT","intent":"full_analysis"},"expected":"redirect:analyze"},
+        {"id":"move-cross-05","arguments":{"asset":"NVDA","intent":"full_analysis"},"expected":"redirect:analyze"}
+      ],
+      "missing_required": [
+        {"id":"move-missing-01","arguments":{},"expected":"blocked"},
+        {"id":"move-missing-02","arguments":{"window_type":"single-session"},"expected":"blocked"},
+        {"id":"move-missing-03","arguments":{"asset":""},"expected":"blocked"},
+        {"id":"move-missing-04","request":{"schema_version":"2.0","command":"move"},"expected":"invalid"},
+        {"id":"move-missing-05","request":{"schema_version":"2.0","arguments":{"asset":"AAPL"}},"expected":"invalid"}
+      ],
+      "mixed_language": [
+        {"id":"move-mixed-01","arguments":{"asset":"贵州茅台","intent":"why 涨停"},"expected":"route"},
+        {"id":"move-mixed-02","arguments":{"asset":"Tencent","intent":"异动 cause"},"expected":"route"},
+        {"id":"move-mixed-03","arguments":{"asset":"AAPL","event":"财报 earnings"},"expected":"route"},
+        {"id":"move-mixed-04","arguments":{"asset":"Samsung","intent":"multi-day 下跌","window_type":"multi-session","start_date":"20260720","end_date":"20260724"},"expected":"route"},
+        {"id":"move-mixed-05","arguments":{"asset":"NVDA","causal_claim":"可能是 guidance 下调"},"expected":"route"}
+      ],
+      "malicious": [
+        {"id":"move-malicious-01","arguments":{"asset":"AAPL;id"},"expected":"blocked"},
+        {"id":"move-malicious-02","arguments":{"asset":"$(whoami)"},"expected":"blocked"},
+        {"id":"move-malicious-03","arguments":{"asset":"AAPL","window_type":"day;rm"},"expected":"invalid"},
+        {"id":"move-malicious-04","arguments":{"asset":"AAPL","start_date":"../../etc/passwd"},"expected":"invalid"},
+        {"id":"move-malicious-05","arguments":{"asset":{"$ne":null}},"expected":"invalid"}
+      ]
+    },
+    "screen": {
+      "normal": [
+        {"id":"screen-normal-01","arguments":{"mode":"explore","intent":"roe screen"},"expected":"blocked"},
+        {"id":"screen-normal-02","arguments":{"mode":"explore","intent":"low pe"},"expected":"blocked"},
+        {"id":"screen-normal-03","arguments":{"mode":"execute","confirmed":true,"fiscal_year":2025,"universe_file":"universe.json","filters":[{"field":"roe_weighted","operator":"gt","value":8,"unit":"percent","missing":"unknown"}],"sort":{"field":"roe_weighted","direction":"desc"},"limit":20},"expected":"route:execute"},
+        {"id":"screen-normal-04","arguments":{"mode":"execute","confirmed":true,"fiscal_year":2024,"universe_file":"u.json","filters":[{"field":"pe","operator":"lt","value":20,"unit":"ratio","missing":"exclude"}],"sort":{"field":"pe","direction":"asc"},"limit":10},"expected":"route:execute"},
+        {"id":"screen-normal-05","arguments":{"mode":"execute","confirmed":true,"fiscal_year":2025,"universe_file":"a.json","filters":[{"field":"revenue","operator":"gt","value":1000000000,"unit":"currency","missing":"unknown"}],"sort":{"field":"revenue","direction":"desc"},"limit":50},"expected":"route:execute"},
+        {"id":"screen-normal-06","arguments":{"mode":"execute","confirmed":true,"fiscal_year":2025,"universe_file":"b.json","filters":[{"field":"debt_ratio","operator":"lte","value":50,"unit":"percent","missing":"exclude"}],"sort":{"field":"debt_ratio","direction":"asc"},"limit":30},"expected":"route:execute"},
+        {"id":"screen-normal-07","arguments":{"mode":"explore","intent":"quality companies"},"expected":"blocked"},
+        {"id":"screen-normal-08","arguments":{"mode":"explore","period":"FY2025"},"expected":"blocked"},
+        {"id":"screen-normal-09","arguments":{"mode":"execute","confirmed":true,"fiscal_year":2025,"universe_file":"c.json","filters":[{"field":"gross_margin","operator":"gte","value":30,"unit":"percent","missing":"unknown"}],"sort":{"field":"gross_margin","direction":"desc"},"limit":5},"expected":"route:execute"},
+        {"id":"screen-normal-10","arguments":{"mode":"execute","confirmed":true,"fiscal_year":2025,"universe_file":"d.json","filters":[{"field":"roe_weighted","operator":"gt","value":10,"unit":"percent","missing":"exclude"},{"field":"debt_ratio","operator":"lt","value":60,"unit":"percent","missing":"exclude"}],"sort":{"field":"roe_weighted","direction":"desc"},"limit":20},"expected":"route:execute"}
+      ],
+      "ambiguous": [
+        {"id":"screen-ambiguous-01","arguments":{"mode":"explore","intent":"找好公司"},"expected":"blocked"},
+        {"id":"screen-ambiguous-02","arguments":{"mode":"explore","intent":"估值便宜"},"expected":"blocked"},
+        {"id":"screen-ambiguous-03","arguments":{"mode":"explore","intent":"高增长"},"expected":"blocked"},
+        {"id":"screen-ambiguous-04","arguments":{"mode":"explore","intent":"strong moat"},"expected":"blocked"},
+        {"id":"screen-ambiguous-05","arguments":{"mode":"execute","confirmed":false,"intent":"run it"},"expected":"blocked"}
+      ],
+      "cross_command": [
+        {"id":"screen-cross-01","arguments":{"mode":"explore","intent":"analyze 600519"},"expected":"redirect_or_clarify"},
+        {"id":"screen-cross-02","arguments":{"mode":"explore","intent":"market recap"},"expected":"redirect_or_clarify"},
+        {"id":"screen-cross-03","arguments":{"mode":"explore","intent":"AAPL move"},"expected":"redirect_or_clarify"},
+        {"id":"screen-cross-04","arguments":{"mode":"explore","intent":"portfolio review"},"expected":"redirect_or_clarify"},
+        {"id":"screen-cross-05","arguments":{"mode":"explore","intent":"earnings review"},"expected":"redirect_or_clarify"}
+      ],
+      "missing_required": [
+        {"id":"screen-missing-01","arguments":{},"expected":"blocked"},
+        {"id":"screen-missing-02","arguments":{"mode":"execute"},"expected":"blocked"},
+        {"id":"screen-missing-03","arguments":{"mode":"execute","confirmed":true,"fiscal_year":2025},"expected":"blocked"},
+        {"id":"screen-missing-04","arguments":{"mode":"execute","confirmed":true,"fiscal_year":2025,"universe_file":"u.json"},"expected":"blocked"},
+        {"id":"screen-missing-05","arguments":{"mode":"execute","confirmed":true,"fiscal_year":2025,"universe_file":"u.json","filters":[]},"expected":"blocked"}
+      ],
+      "mixed_language": [
+        {"id":"screen-mixed-01","arguments":{"mode":"explore","intent":"筛选 high ROE 股票"},"expected":"blocked"},
+        {"id":"screen-mixed-02","arguments":{"mode":"explore","intent":"低 PE companies"},"expected":"blocked"},
+        {"id":"screen-mixed-03","arguments":{"mode":"explore","intent":"growth 高增长"},"expected":"blocked"},
+        {"id":"screen-mixed-04","arguments":{"mode":"explore","intent":"A股 quality screen"},"expected":"blocked"},
+        {"id":"screen-mixed-05","arguments":{"mode":"explore","intent":"筛选 top 20 by ROE"},"expected":"blocked"}
+      ],
+      "malicious": [
+        {"id":"screen-malicious-01","arguments":{"mode":"execute;rm","confirmed":true},"expected":"invalid"},
+        {"id":"screen-malicious-02","arguments":{"mode":"execute","confirmed":true,"fiscal_year":"$(id)"},"expected":"invalid"},
+        {"id":"screen-malicious-03","arguments":{"mode":"execute","confirmed":true,"universe_file":"../../etc/passwd"},"expected":"blocked"},
+        {"id":"screen-malicious-04","arguments":{"mode":"execute","confirmed":true,"fiscal_year":2025,"universe_file":"u.json","filters":[{"field":"x;id","operator":"gt","value":1,"unit":"number","missing":"unknown"}]},"expected":"blocked"},
+        {"id":"screen-malicious-05","arguments":{"mode":"execute","confirmed":{"$ne":false}},"expected":"invalid"}
+      ]
+    },
+    "portfolio": {
+      "normal": [
+        {"id":"portfolio-normal-01","arguments":{"action":"review","holdings_status":"missing"},"expected":"limited"},
+        {"id":"portfolio-normal-02","arguments":{"action":"review","holdings_status":"complete","holdings_json":"[]"},"expected":"route"},
+        {"id":"portfolio-normal-03","arguments":{"action":"import","holdings_status":"complete","holdings_json":"[]"},"expected":"route"},
+        {"id":"portfolio-normal-04","arguments":{"action":"stress","holdings_status":"complete","holdings_json":"[]"},"expected":"route"},
+        {"id":"portfolio-normal-05","arguments":{"action":"compare","holdings_status":"complete","holdings_json":"[]"},"expected":"route"},
+        {"id":"portfolio-normal-06","arguments":{"action":"review","holdings_status":"partial","holdings_json":"[]"},"expected":"limited"},
+        {"id":"portfolio-normal-07","arguments":{"action":"review","holdings_status":"stale","holdings_json":"[]"},"expected":"limited"},
+        {"id":"portfolio-normal-08","arguments":{"action":"review","holdings_status":"complete","holdings_json":{"positions":[]}},"expected":"route"},
+        {"id":"portfolio-normal-09","arguments":{"action":"review","holdings_status":"complete","holdings_json":"[]","date":"20260724"},"expected":"route"},
+        {"id":"portfolio-normal-10","arguments":{"action":"import","holdings_status":"partial","holdings_json":"[]"},"expected":"limited"}
+      ],
+      "ambiguous": [
+        {"id":"portfolio-ambiguous-01","arguments":{"action":"review","intent":"看看我的仓位"},"expected":"limited"},
+        {"id":"portfolio-ambiguous-02","arguments":{"action":"review","holdings_status":"missing"},"expected":"limited"},
+        {"id":"portfolio-ambiguous-03","arguments":{"action":"stress","holdings_status":"partial"},"expected":"blocked"},
+        {"id":"portfolio-ambiguous-04","arguments":{"action":"compare","holdings_status":"stale"},"expected":"blocked"},
+        {"id":"portfolio-ambiguous-05","arguments":{"action":"import","holdings_status":"missing"},"expected":"blocked"}
+      ],
+      "cross_command": [
+        {"id":"portfolio-cross-01","arguments":{"action":"review","intent":"market recap"},"expected":"redirect_or_clarify"},
+        {"id":"portfolio-cross-02","arguments":{"action":"review","intent":"analyze AAPL"},"expected":"redirect_or_clarify"},
+        {"id":"portfolio-cross-03","arguments":{"action":"review","intent":"screen stocks"},"expected":"redirect_or_clarify"},
+        {"id":"portfolio-cross-04","arguments":{"action":"review","intent":"earnings MSFT"},"expected":"redirect_or_clarify"},
+        {"id":"portfolio-cross-05","arguments":{"action":"review","intent":"create thesis"},"expected":"redirect_or_clarify"}
+      ],
+      "missing_required": [
+        {"id":"portfolio-missing-01","arguments":{},"expected":"blocked"},
+        {"id":"portfolio-missing-02","arguments":{"holdings_status":"complete"},"expected":"blocked"},
+        {"id":"portfolio-missing-03","arguments":{"action":"import"},"expected":"blocked"},
+        {"id":"portfolio-missing-04","arguments":{"action":"stress","holdings_status":"complete"},"expected":"blocked"},
+        {"id":"portfolio-missing-05","request":{"schema_version":"2.0","command":"portfolio"},"expected":"invalid"}
+      ],
+      "mixed_language": [
+        {"id":"portfolio-mixed-01","arguments":{"action":"review","intent":"review 我的持仓","holdings_status":"missing"},"expected":"limited"},
+        {"id":"portfolio-mixed-02","arguments":{"action":"stress","intent":"压力测试 stress","holdings_status":"partial"},"expected":"blocked"},
+        {"id":"portfolio-mixed-03","arguments":{"action":"compare","intent":"compare 对比","holdings_status":"complete","holdings_json":"[]"},"expected":"route"},
+        {"id":"portfolio-mixed-04","arguments":{"action":"import","intent":"导入 holdings","holdings_status":"complete","holdings_json":"[]"},"expected":"route"},
+        {"id":"portfolio-mixed-05","arguments":{"action":"review","intent":"portfolio 风险","holdings_status":"stale"},"expected":"limited"}
+      ],
+      "malicious": [
+        {"id":"portfolio-malicious-01","arguments":{"action":"review;id"},"expected":"invalid"},
+        {"id":"portfolio-malicious-02","arguments":{"action":"import","holdings_status":"complete","holdings_json":"$(cat /etc/passwd)"},"expected":"blocked"},
+        {"id":"portfolio-malicious-03","arguments":{"action":"review","holdings_status":"../../secret"},"expected":"invalid"},
+        {"id":"portfolio-malicious-04","arguments":{"action":{"$ne":"review"}},"expected":"invalid"},
+        {"id":"portfolio-malicious-05","arguments":{"action":"stress","holdings_status":"complete","holdings_json":"`; rm -rf /`"},"expected":"blocked"}
+      ]
+    },
+    "thesis": {
+      "normal": [
+        {"id":"thesis-normal-01","arguments":{"asset":"600519","action":"create"},"expected":"route:create"},
+        {"id":"thesis-normal-02","arguments":{"asset":"AAPL","action":"review"},"expected":"route:review"},
+        {"id":"thesis-normal-03","arguments":{"asset":"0700.HK","action":"update"},"expected":"route:update"},
+        {"id":"thesis-normal-04","arguments":{"asset":"MSFT","action":"compare","from_version":"v1","to_version":"v2"},"expected":"route:compare"},
+        {"id":"thesis-normal-05","arguments":{"asset":"9988.HK","action":"invalidate","reason":"核心假设已被一手证据否定"},"expected":"route:invalidate"},
+        {"id":"thesis-normal-06","arguments":{"asset":"7203.T","action":"create","date":"20260724"},"expected":"route:create"},
+        {"id":"thesis-normal-07","arguments":{"asset":"005930.KS","action":"review"},"expected":"route:review"},
+        {"id":"thesis-normal-08","arguments":{"asset":"000001.SZ","action":"update"},"expected":"route:update"},
+        {"id":"thesis-normal-09","arguments":{"asset":"NVDA","action":"compare","from_version":"v1","to_version":"v3"},"expected":"route:compare"},
+        {"id":"thesis-normal-10","arguments":{"asset":"BABA","action":"invalidate","reason":"失效条件已经触发"},"expected":"route:invalidate"}
+      ],
+      "ambiguous": [
+        {"id":"thesis-ambiguous-01","arguments":{"asset":"苹果","intent":"处理 thesis"},"expected":"blocked"},
+        {"id":"thesis-ambiguous-02","arguments":{"asset":"腾讯","intent":"改一下论文"},"expected":"blocked"},
+        {"id":"thesis-ambiguous-03","arguments":{"asset":"ABC","intent":"thesis"},"expected":"blocked"},
+        {"id":"thesis-ambiguous-04","arguments":{"asset":"000001","intent":"看看投资逻辑"},"expected":"blocked"},
+        {"id":"thesis-ambiguous-05","arguments":{"asset":"NVDA","intent":"update or review"},"expected":"blocked"}
+      ],
+      "cross_command": [
+        {"id":"thesis-cross-01","arguments":{"asset":"600519","action":"review","intent":"earnings only"},"expected":"redirect_or_clarify"},
+        {"id":"thesis-cross-02","arguments":{"asset":"AAPL","action":"review","intent":"price move"},"expected":"redirect_or_clarify"},
+        {"id":"thesis-cross-03","arguments":{"asset":"0700.HK","action":"review","intent":"snapshot"},"expected":"redirect_or_clarify"},
+        {"id":"thesis-cross-04","arguments":{"asset":"MSFT","action":"review","intent":"full analysis"},"expected":"redirect_or_clarify"},
+        {"id":"thesis-cross-05","arguments":{"asset":"9988.HK","action":"review","intent":"market recap"},"expected":"redirect_or_clarify"}
+      ],
+      "missing_required": [
+        {"id":"thesis-missing-01","arguments":{},"expected":"blocked"},
+        {"id":"thesis-missing-02","arguments":{"asset":"AAPL"},"expected":"blocked"},
+        {"id":"thesis-missing-03","arguments":{"action":"create"},"expected":"blocked"},
+        {"id":"thesis-missing-04","arguments":{"asset":"","action":"review"},"expected":"blocked"},
+        {"id":"thesis-missing-05","request":{"schema_version":"2.0","command":"thesis"},"expected":"invalid"}
+      ],
+      "mixed_language": [
+        {"id":"thesis-mixed-01","arguments":{"asset":"贵州茅台","action":"create","intent":"create 投资论文"},"expected":"route:create"},
+        {"id":"thesis-mixed-02","arguments":{"asset":"Tencent","action":"review","intent":"复核 thesis"},"expected":"route:review"},
+        {"id":"thesis-mixed-03","arguments":{"asset":"AAPL","action":"update","intent":"更新 thesis"},"expected":"route:update"},
+        {"id":"thesis-mixed-04","arguments":{"asset":"Samsung","action":"compare","from_version":"初版-v1","to_version":"current-v2","intent":"compare 历史版本"},"expected":"route:compare"},
+        {"id":"thesis-mixed-05","arguments":{"asset":"NVDA","action":"invalidate","reason":"thesis invalidation trigger 已证实","intent":"失效 thesis"},"expected":"route:invalidate"}
+      ],
+      "malicious": [
+        {"id":"thesis-malicious-01","arguments":{"asset":"AAPL;id","action":"review"},"expected":"blocked"},
+        {"id":"thesis-malicious-02","arguments":{"asset":"$(whoami)","action":"create"},"expected":"blocked"},
+        {"id":"thesis-malicious-03","arguments":{"asset":"AAPL","action":"update;rm"},"expected":"invalid"},
+        {"id":"thesis-malicious-04","arguments":{"asset":{"$ne":null},"action":"review"},"expected":"invalid"},
+        {"id":"thesis-malicious-05","arguments":{"asset":"../../secret","action":"invalidate"},"expected":"blocked"}
+      ]
+    }
+  }
+}

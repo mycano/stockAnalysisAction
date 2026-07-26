@@ -1,21 +1,32 @@
 ---
-name: research-workspace
-description: 为股票或基金生成可恢复、可审计的机构化研究工作区。
+name: "research-workspace"
+description: "已弃用的 /research-workspace 兼容入口；转发到 /analyze。"
+managed_by: "stock-analysis"
+schema_version: "2.0"
+command_id: "stock-analysis.analyze"
+catalog_hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+host_target: "claude-command"
+x-stock-analysis-managed: true
+x-stock-analysis-schema: "agent-entrypoint/v2"
+x-stock-analysis-command: "analyze"
+x-stock-analysis-catalog-hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+deprecated: true
 ---
 
-# /research-workspace Claude Code command
+# /research-workspace（兼容）
 
-为股票或基金生成可恢复、可审计的机构化研究工作区。
+此入口自 4.17.0 起弃用，仅兼容转发到 `/analyze`；不得复制或执行第二套
+业务协议。向用户显示弃用提示，保留原参数，并将其整理为：
 
-Run:
-
-```bash
-stock-analysis --market research --symbol <symbol> [--asset-type company|fund]
+```json
+{"schema_version":"2.0","command":"analyze","arguments":{"depth":"standard","asset":"<asset>"}}
 ```
 
-股票冻结 C1–C8 Company Evidence，基金冻结 F1–F8 Fund Evidence；lens 与 committee 消费同一 snapshot_id，最终报告只发布通过离散证据规则的 publishable_claims，普通缺口与未发布命题保留在四类审计 JSON。
+然后以独立 argv 元素调用：
 
-For research-workspace investor reports, use only publishable_claims. Keep ordinary missing evidence and unpublished questions in evidence_manifest.json, claim_ledger.json, coverage_report.json, and unpublished_claims.json; never turn absence of evidence into a bearish, neutral, conservative, or wait-and-see conclusion.
-If Company Evidence marks agent_primary_evidence_reach as recommended, invoke the bundled
-stock-analysis-primary-evidence-reach Skill, follow primary_evidence_requests, and rerun with
---primary-evidence-file. Agent Reach is optional because the bundled fallback can use host web/PDF tools.
+```text
+stock-analysis agent route --request <HostRequest JSON>
+stock-analysis agent run --request <HostRequest JSON>
+```
+
+不得使用 `--input`，不得拼接 Shell 字符串，且必须保留 Router 的阻断、重定向和原因码。

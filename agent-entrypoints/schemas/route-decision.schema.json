@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AdvancingTitans/stock-analysis/agent-entrypoints/schemas/route-decision.schema.json",
+  "title": "RouteDecision",
+  "$ref": "resolved-request.schema.json"
+}

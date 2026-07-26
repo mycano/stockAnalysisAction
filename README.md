@@ -6,7 +6,7 @@
 </div>
 
 <p align="center">
-  <a href="https://github.com/AdvancingTitans/stock-analysis/releases/tag/v4.16.0"><img alt="Release v4.16.0" src="https://img.shields.io/badge/release-v4.16.0-65e6a5"></a>
+  <a href="https://github.com/AdvancingTitans/stock-analysis/releases/tag/v4.17.0"><img alt="Release v4.17.0" src="https://img.shields.io/badge/release-v4.17.0-65e6a5"></a>
   <a href="https://pypi.org/project/stock-analysis/"><img alt="PyPI" src="https://img.shields.io/pypi/v/stock-analysis"></a>
   <a href="https://github.com/AdvancingTitans/stock-analysis/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/AdvancingTitans/stock-analysis/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://www.python.org/"><img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9%2B-3776ab"></a>
@@ -146,6 +146,32 @@ Choose the investing question you have rather than assembling low-level flags. E
 | Run a recoverable institutional research process | You need staged artifacts that can be resumed, audited, and compared with the prior review. | `/research-workspace` | `--market research --symbol` |
 
 Claude Code supports native `/command` entrypoints. In Codex, Custom Prompts appear as `/prompts:stock-review`; after installing the generated Skills, an Agent can match a plain-language request such as “review Tencent” to the relevant Skill and run its deterministic command. Intent matching happens in the host Agent from the Skill description, not in the `stock-analysis` Python package. The same canonical catalog generates every entrypoint, so their workflow contract does not drift.
+
+### Agent command protocol v2
+
+v4.17 makes eight names the stable public Agent surface: `/market`, `/snapshot`, `/analyze`, `/earnings`, `/move`, `/screen`, `/portfolio`, and `/thesis`. Existing names such as `/market-recap` and `/stock-review` remain compatibility forwarders for one to two major versions; `/data-diagnose` remains an operational command.
+
+The production boundary is fixed:
+
+```mermaid
+flowchart LR
+    H["HostRequest\nstructured by Codex / Claude / another host"] --> R["ResolvedRequest\nvalidated + deterministic route"]
+    R --> W["Workflow\nargv array + output contract"]
+```
+
+The host produces a structured `HostRequest`; the Python Router consumes only that object, applies explicit-parameter and capability rules, and emits a `ResolvedRequest`. It never parses free-form user text in production. `--input` exists only for debugging and test fixtures.
+
+```bash
+# Install generated Codex Skills + Prompts and Claude commands safely.
+stock-analysis-agent install all
+stock-analysis-agent doctor all
+
+# Production routing: pass one structured request.
+stock-analysis agent route --request '{"schema_version":"2.0","command":"analyze","arguments":{"asset":"600519"}}'
+stock-analysis agent run --request request.json
+```
+
+Generated files carry the catalog hash, command id, and schema metadata. Installation uses one manifest under `${STOCK_ANALYSIS_HOME:-~/.stock-analysis}`, never overwrites unmanaged files, and supports `dry-run`, `doctor`, and guarded `uninstall`. The catalog, JSON Schemas, generated host entrypoints, and the 280-case bilingual/adversarial route matrix are checked for drift in CI.
 
 ## How the system works
 
@@ -398,6 +424,9 @@ stock-analysis --market price-move --symbol 600519 --emit-evidence
 # Create and later compare a local structured thesis snapshot
 stock-analysis --market thesis-create --symbol 600519
 stock-analysis --market thesis-review --symbol 600519
+stock-analysis --market thesis-update --symbol 600519
+stock-analysis --market thesis-compare --symbol 600519 --from-version 1 --to-version 2
+stock-analysis --market thesis-invalidate --symbol 600519 --reason "core assumption invalidated"
 
 # Build or resume a staged institutional research workspace
 stock-analysis --market research --symbol 600519
@@ -578,7 +607,7 @@ Lenses change evidence priority and narrative structure. They do not override da
 
 ### Built-in Lens and Committee Boundaries
 
-Current CLI version: `4.16.0`.
+Current CLI version: `4.17.0`.
 
 `research` reports retain the denser Chinese committee narrative from the 4.5 series while keeping recoverable, traceable research state inside the Workspace. Company and fund reports preserve their institutional committee spines and use a deterministic claim-publication layer: each lens separates `publishable_claims` from `unpublished_questions`, and the committee consumes only the former. Ordinary missing evidence filters or narrows the affected claim; it is not treated as a bearish, neutral, conservative, or wait-and-see signal.
 
@@ -615,6 +644,10 @@ Good first contributions:
 - Submit this project to a high-fit Awesome List or agent tool directory.
 
 Start with [CONTRIBUTING.md](CONTRIBUTING.md) and [ROADMAP.md](ROADMAP.md).
+
+## Future Roadmap
+
+The v4.17 release stops at P1 to stay focused on the command protocol, multi-host compatibility, and deterministic routing. Dedicated Hermes adapters, host-side Web/PDF enrichment, opt-in anonymous telemetry (disabled by default), and route optimization based on real failure data are deferred together to a future release. See [ROADMAP.md](ROADMAP.md).
 
 ## Awesome List Blurb
 

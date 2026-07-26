@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
+from . import __version__
 from .company_evidence import build_company_evidence
 from .config import SourceConfig
 from .csi_index import FUND_INDEX_CODES, build_csi_index_snapshot
@@ -58,7 +60,7 @@ from .screening import load_security_master, parse_filter, parse_sort, screen
 from .screening import render_markdown as render_screen_markdown
 from .screening import write_evidence as write_screen_evidence
 from .sec_filings import fetch_sec_financials
-from .thesis import create_thesis, review_thesis
+from .thesis import compare_theses, create_thesis, invalidate_thesis, review_thesis, update_thesis
 from .time_series import compare_price_series
 from .trading import IncompleteHoldingsError, parse_user_holdings_json, plan_trading_task, resolve_holdings
 from .workflows import render_earnings_review, render_price_move, render_stock_review
@@ -66,6 +68,7 @@ from .workflows import render_earnings_review, render_price_move, render_stock_r
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Evidence-driven global stock market recap")
+    parser.add_argument("--version", action="version", version=__version__)
     parser.add_argument("legacy_date", nargs="?", help=argparse.SUPPRESS)
     parser.add_argument("--date", help="Explicit trade date YYYYMMDD")
     parser.add_argument(
@@ -73,7 +76,8 @@ def build_parser() -> argparse.ArgumentParser:
         default="daily",
         choices=[
             "daily", "a", "hk", "us", "global", "stock", "fund", "screen", "diagnose",
-            "stock-review", "earnings", "price-move", "portfolio", "thesis-create", "thesis-review", "research",
+            "stock-review", "earnings", "price-move", "portfolio",
+            "thesis-create", "thesis-review", "thesis-update", "thesis-compare", "thesis-invalidate", "research",
         ],
     )
     parser.add_argument(
@@ -125,6 +129,17 @@ def build_parser() -> argparse.ArgumentParser:
         "--primary-evidence-file",
         help="Agent-reached issuer-primary JSON evidence with source URL and publication cutoff",
     )
+    parser.add_argument("--from-version", help="Starting immutable thesis version, e.g. 1 or v1")
+    parser.add_argument("--to-version", help="Ending immutable thesis version, e.g. 2 or v2")
+    parser.add_argument("--reason", help="Explicit reason recorded in a thesis update/invalidation audit event")
+    parser.add_argument(
+        "--window-type",
+        choices=("single-session", "multi-session", "event-window"),
+        default="single-session",
+        help="Price-move analysis boundary",
+    )
+    parser.add_argument("--start-date", help="Start date YYYYMMDD for a multi-session move")
+    parser.add_argument("--event", help="Explicit event label for an event-window move")
     parser.add_argument("--stock", dest="symbol", help="Alias for --symbol with --market stock")
     parser.add_argument("--fund", dest="symbol", help="Alias for --symbol with --market fund")
     parser.add_argument("--fiscal-year", type=int, help="Fiscal year for --market screen")
@@ -650,8 +665,13 @@ def _liquidity_bucket(turnover: float | None, spread_bps: float | None) -> str:
 
 
 def run(argv: list[str] | None = None) -> int:
+    effective_argv = list(sys.argv[1:] if argv is None else argv)
+    if effective_argv and effective_argv[0] == "agent":
+        from .agent.cli import run_agent
+
+        return run_agent(effective_argv[1:])
     parser = build_parser()
-    args = parser.parse_args(argv)
+    args = parser.parse_args(effective_argv)
     now = datetime.now()
     market = "a" if args.market in {"daily", "a", "global", "screen", "portfolio"} else args.market
     if args.symbol:
@@ -689,7 +709,10 @@ def run(argv: list[str] | None = None) -> int:
             parser.error("--symbol or --fund is required when --market fund")
         print(_render_fund_snapshot(args.symbol, trade_date))
         return 0
-    if args.market in {"stock-review", "earnings", "price-move", "thesis-create", "thesis-review", "research"}:
+    if args.market in {
+        "stock-review", "earnings", "price-move", "thesis-create", "thesis-review",
+        "thesis-update", "thesis-compare", "thesis-invalidate", "research",
+    }:
         services = ResearchCommandServices(
             build_company_evidence=build_company_evidence,
             build_fund_evidence=build_fund_evidence,
@@ -700,6 +723,9 @@ def run(argv: list[str] | None = None) -> int:
             render_price_move=render_price_move,
             create_thesis=create_thesis,
             review_thesis=review_thesis,
+            update_thesis=update_thesis,
+            invalidate_thesis=invalidate_thesis,
+            compare_theses=compare_theses,
             render_thesis_create=_render_thesis_create,
             render_thesis_review=_render_thesis_review,
             load_reached_primary_evidence=load_reached_primary_evidence,

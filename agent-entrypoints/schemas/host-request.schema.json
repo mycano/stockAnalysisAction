@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AdvancingTitans/stock-analysis/agent-entrypoints/schemas/host-request.schema.json",
+  "title": "HostRequest",
+  "type": "object",
+  "required": ["schema_version", "command", "arguments"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "2.0"},
+    "command": {"enum": ["market", "snapshot", "analyze", "earnings", "move", "screen", "portfolio", "thesis"]},
+    "arguments": {"type": "object"},
+    "request_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "host": {"type": "string", "minLength": 1},
+        "entrypoint": {"type": "string", "minLength": 1},
+        "locale": {"type": "string", "minLength": 2}
+      }
+    }
+  }
+}

@@ -1,21 +1,32 @@
 ---
-name: thesis-review
-description: 将当前 Company Evidence 与持久化论文快照比较。
+name: "thesis-review"
+description: "已弃用的 /thesis-review 兼容入口；转发到 /thesis。"
+managed_by: "stock-analysis"
+schema_version: "2.0"
+command_id: "stock-analysis.thesis"
+catalog_hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+host_target: "codex-prompt"
+x-stock-analysis-managed: true
+x-stock-analysis-schema: "agent-entrypoint/v2"
+x-stock-analysis-command: "thesis"
+x-stock-analysis-catalog-hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+deprecated: true
 ---
 
-# /prompts:thesis-review Codex custom prompt
+# /thesis-review（兼容）
 
-将当前 Company Evidence 与持久化论文快照比较。
+此入口自 4.17.0 起弃用，仅兼容转发到 `/thesis`；不得复制或执行第二套
+业务协议。向用户显示弃用提示，保留原参数，并将其整理为：
 
-Run:
-
-```bash
-stock-analysis --market thesis-review --symbol <symbol> --emit-evidence
+```json
+{"schema_version":"2.0","command":"thesis","arguments":{"action":"review","asset":"<asset>"}}
 ```
 
-区分事实变化、证据覆盖变化和仍需人工判断的论文变化。
+然后以独立 argv 元素调用：
 
-Always preserve Evidence Pack source events and state missing evidence explicitly.
-If Company Evidence marks agent_primary_evidence_reach as recommended, invoke the bundled
-stock-analysis-primary-evidence-reach Skill, follow primary_evidence_requests, and rerun with
---primary-evidence-file. Agent Reach is optional because the bundled fallback can use host web/PDF tools.
+```text
+stock-analysis agent route --request <HostRequest JSON>
+stock-analysis agent run --request <HostRequest JSON>
+```
+
+不得使用 `--input`，不得拼接 Shell 字符串，且必须保留 Router 的阻断、重定向和原因码。

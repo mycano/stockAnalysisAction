@@ -1,21 +1,32 @@
 ---
-name: portfolio-review
-description: 读取已明确授权的本地持仓记忆，复核集中度、暴露和相对表现。
+name: "portfolio-review"
+description: "已弃用的 /portfolio-review 兼容入口；转发到 /portfolio。"
+managed_by: "stock-analysis"
+schema_version: "2.0"
+command_id: "stock-analysis.portfolio"
+catalog_hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+host_target: "codex-prompt"
+x-stock-analysis-managed: true
+x-stock-analysis-schema: "agent-entrypoint/v2"
+x-stock-analysis-command: "portfolio"
+x-stock-analysis-catalog-hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+deprecated: true
 ---
 
-# /prompts:portfolio-review Codex custom prompt
+# /portfolio-review（兼容）
 
-读取已明确授权的本地持仓记忆，复核集中度、暴露和相对表现。
+此入口自 4.17.0 起弃用，仅兼容转发到 `/portfolio`；不得复制或执行第二套
+业务协议。向用户显示弃用提示，保留原参数，并将其整理为：
 
-Run:
-
-```bash
-stock-analysis --market portfolio --emit-evidence
+```json
+{"schema_version":"2.0","command":"portfolio","arguments":{"action":"review"}}
 ```
 
-没有完整持仓时，只报告市场，不能虚构组合收益。
+然后以独立 argv 元素调用：
 
-Always preserve Evidence Pack source events and state missing evidence explicitly.
-If Company Evidence marks agent_primary_evidence_reach as recommended, invoke the bundled
-stock-analysis-primary-evidence-reach Skill, follow primary_evidence_requests, and rerun with
---primary-evidence-file. Agent Reach is optional because the bundled fallback can use host web/PDF tools.
+```text
+stock-analysis agent route --request <HostRequest JSON>
+stock-analysis agent run --request <HostRequest JSON>
+```
+
+不得使用 `--input`，不得拼接 Shell 字符串，且必须保留 Router 的阻断、重定向和原因码。
