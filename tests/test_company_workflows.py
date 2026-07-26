@@ -160,6 +160,64 @@ def test_company_workflow_reports_do_not_turn_gaps_into_scores(monkeypatch):
     assert "相关性不自动升级为因果" in price_move
 
 
+def test_deep_peer_fallback_derives_comparable_valuation(monkeypatch):
+    monkeypatch.setattr(
+        company_evidence,
+        "fetch_single_quote",
+        lambda code, *_: QuoteData(
+            symbol=code,
+            name=f"同行{code}",
+            market="a",
+            price=108.0,
+            currency="CNY",
+            trade_date="20260724",
+            source="fixture-market",
+        ),
+    )
+    monkeypatch.setattr(
+        company_evidence,
+        "fetch_a_share_financial_snapshot",
+        lambda *_: {
+            "_source": "fixture-financial",
+            "periods": [
+                {
+                    "report_date": "2026-03-31",
+                    "period_label": "2026Q1",
+                    "basic_eps": 0.8,
+                    "bps": 12.0,
+                    "revenue": 1_000_000_000,
+                    "parent_net_profit": 100_000_000,
+                    "roe_weighted": 3.0,
+                },
+                {
+                    "report_date": "2025-12-31",
+                    "period_label": "2025FY",
+                    "basic_eps": 2.4,
+                    "parent_net_profit": 300_000_000,
+                },
+                {
+                    "report_date": "2025-03-31",
+                    "period_label": "2025Q1",
+                    "basic_eps": 0.2,
+                    "parent_net_profit": 50_000_000,
+                },
+            ],
+        },
+    )
+    pack = {
+        "symbol": "603986",
+        "trade_date": "20260724",
+        "_meta": {"source_events": []},
+    }
+
+    enriched = company_evidence.enrich_company_peer_comparison(pack)
+
+    assert len(enriched["_meta"]["peer_comparison"]) == 3
+    assert enriched["_meta"]["peer_comparison"][0]["period"] == "2026-03-31"
+    assert enriched["_meta"]["peer_comparison"][0]["pe_ttm"] == 36.0
+    assert enriched["_meta"]["peer_comparison"][0]["pb"] == 9.0
+
+
 def test_thesis_create_and_review_persist_only_structured_evidence(monkeypatch, tmp_path):
     pack = _company_pack(monkeypatch)
     monkeypatch.setenv("STOCK_ANALYSIS_THESIS_DIR", str(tmp_path))

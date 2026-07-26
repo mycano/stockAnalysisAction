@@ -52,6 +52,7 @@ COMPANY_MODULES = {
 DEEP_PEER_UNIVERSES = {
     "600519": ("000858", "000568", "600809"),
     "300750": ("300014", "002460", "300207"),
+    "603986": ("300223", "688018", "688385"),
 }
 def _issuer_primary_facts(symbol: str, trade_date: str) -> dict[str, list[dict[str, Any]]]:
     """Extract verified issuer facts through the generic catalog-driven PDF adapter."""
@@ -192,6 +193,31 @@ def _valuation_facts(financials: dict[str, Any], quote_fact: dict[str, Any]) -> 
     eps = annual.get("basic_eps")
     bps = annual.get("bps")
     result = []
+    ttm_eps, ttm_period = _ttm_eps(financials)
+    if ttm_eps not in (None, 0):
+        result.append(
+            _period_fact(
+                "pe_ttm",
+                float(price) / float(ttm_eps),
+                {**annual, "report_date": quote_fact.get("period") or ttm_period},
+                source_type="derived_valuation",
+                confidence="conditional",
+                formula="market_quote / derived_ttm_eps",
+                calculation_basis="latest_fiscal_year_eps + latest_interim_eps - prior_comparable_interim_eps",
+            )
+        )
+        for multiple in (15, 18, 22):
+            result.append(
+                _period_fact(
+                    f"scenario_price_{multiple}x_pe",
+                    float(ttm_eps) * multiple,
+                    {**annual, "report_date": quote_fact.get("period") or ttm_period},
+                    source_type="derived_valuation",
+                    confidence="conditional",
+                    formula=f"derived_ttm_eps * {multiple}",
+                    calculation_basis="latest_fiscal_year_eps + latest_interim_eps - prior_comparable_interim_eps",
+                )
+            )
     if eps not in (None, 0):
         result.append(
             _period_fact(
@@ -203,17 +229,18 @@ def _valuation_facts(financials: dict[str, Any], quote_fact: dict[str, Any]) -> 
                 formula="market_quote / latest_disclosed_fiscal_year_basic_eps",
             )
         )
-        for multiple in (15, 18, 22):
-            result.append(
-                _period_fact(
-                    f"scenario_price_{multiple}x_pe",
-                    float(eps) * multiple,
-                    annual,
-                    source_type="derived_valuation",
-                    confidence="conditional",
-                    formula=f"latest_disclosed_fiscal_year_basic_eps * {multiple}",
+        if ttm_eps in (None, 0):
+            for multiple in (15, 18, 22):
+                result.append(
+                    _period_fact(
+                        f"scenario_price_{multiple}x_pe",
+                        float(eps) * multiple,
+                        annual,
+                        source_type="derived_valuation",
+                        confidence="conditional",
+                        formula=f"latest_disclosed_fiscal_year_basic_eps * {multiple}",
+                    )
                 )
-            )
     if bps not in (None, 0):
         result.append(
             _period_fact(
@@ -226,6 +253,36 @@ def _valuation_facts(financials: dict[str, Any], quote_fact: dict[str, Any]) -> 
             )
         )
     return result
+
+
+def _ttm_eps(financials: dict[str, Any]) -> tuple[float | None, str | None]:
+    """Derive a trailing-twelve-month EPS from comparable cumulative periods."""
+
+    periods = financials.get("periods") or []
+    annual = next(
+        (row for row in periods if str(row.get("period_label") or "").endswith("FY")),
+        None,
+    )
+    if not annual or annual.get("basic_eps") in (None, 0):
+        return None, None
+    latest = periods[0] if periods else annual
+    latest_label = str(latest.get("period_label") or "")
+    if latest is annual or latest_label.endswith("FY"):
+        return float(annual["basic_eps"]), str(annual.get("report_date") or "")
+    latest_year = str(latest.get("report_date") or "")[:4]
+    if not latest_year.isdigit() or latest.get("basic_eps") is None:
+        return float(annual["basic_eps"]), str(annual.get("report_date") or "")
+    prior_label = latest_label.replace(latest_year, str(int(latest_year) - 1), 1)
+    prior = next(
+        (row for row in periods[1:] if str(row.get("period_label") or "") == prior_label),
+        None,
+    )
+    if not prior or prior.get("basic_eps") is None:
+        return float(annual["basic_eps"]), str(annual.get("report_date") or "")
+    ttm_eps = float(annual["basic_eps"]) + float(latest["basic_eps"]) - float(prior["basic_eps"])
+    if ttm_eps <= 0:
+        return None, None
+    return ttm_eps, str(latest.get("report_date") or annual.get("report_date") or "")
 
 
 def _business_quality_facts(financials: dict[str, Any]) -> list[dict[str, Any]]:
@@ -951,16 +1008,31 @@ def enrich_company_peer_comparison(pack: dict[str, Any]) -> dict[str, Any]:
         latest = _latest_material_period(periods) if periods else {}
         if quote is None and not latest:
             continue
+        peer_ttm_eps, _ = _ttm_eps(financial_outcome.value)
+        derived_pe = (
+            float(quote.price) / peer_ttm_eps
+            if quote is not None
+            and quote.price is not None
+            and peer_ttm_eps not in (None, 0)
+            else None
+        )
+        derived_pb = (
+            float(quote.price) / float(latest["bps"])
+            if quote is not None
+            and quote.price is not None
+            and latest.get("bps") not in (None, 0)
+            else None
+        )
         rows.append(
             {
                 "symbol": code,
                 "name": quote.name if quote else code,
-                "period": latest.get("period"),
+                "period": latest.get("report_date") or latest.get("period") or latest.get("period_label"),
                 "revenue": latest.get("revenue"),
                 "parent_net_profit": latest.get("parent_net_profit"),
                 "roe_weighted": latest.get("roe_weighted"),
-                "pe_ttm": quote.pe if quote else None,
-                "pb": quote.pb if quote else None,
+                "pe_ttm": quote.pe if quote and quote.pe is not None else derived_pe,
+                "pb": quote.pb if quote and quote.pb is not None else derived_pb,
                 "sources": [
                     quote.source if quote else None,
                     financial_outcome.value.get("_source"),

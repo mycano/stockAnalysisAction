@@ -88,6 +88,122 @@ def test_general_company_reports_follow_each_depth_contract():
     assert reports["quick"] != reports["standard"] != reports["deep"]
     assert "三情景分析" in reports["deep"]
     assert "反方审查" in reports["deep"]
+    assert "可继续要求“深度分析”" in reports["quick"]
+    assert "可继续要求“深度分析”" in reports["standard"]
+    assert "可继续要求“深度分析”" not in reports["deep"]
+
+
+def test_company_deep_report_uses_bounded_scenarios_and_correct_price_relation():
+    pack = _company_pack()
+    pack["modules"]["C6"]["evidence"].extend(
+        [
+            {
+                "metric": "pe_ttm",
+                "value": 105.79,
+                "period": "20260724",
+                "validation_status": "conditional",
+            },
+            {
+                "metric": "scenario_price_18x_pe",
+                "value": 77.76,
+                "period": "20260724",
+                "validation_status": "conditional",
+            },
+            {
+                "metric": "scenario_price_22x_pe",
+                "value": 95.04,
+                "period": "20260724",
+                "validation_status": "conditional",
+            },
+        ]
+    )
+    pack["financial_history"] = [
+        {
+            "report_date": "2026-03-31",
+            "period_label": "2026Q1",
+            "basic_eps": 2.19,
+            "parent_net_profit": 1_461_248_353,
+        },
+        {
+            "report_date": "2025-12-31",
+            "period_label": "2025FY",
+            "basic_eps": 2.48,
+            "parent_net_profit": 1_648_022_652,
+        },
+        {
+            "report_date": "2025-03-31",
+            "period_label": "2025Q1",
+            "basic_eps": 0.35,
+            "parent_net_profit": 234_630_087,
+        },
+        {
+            "report_date": "2024-12-31",
+            "period_label": "2024FY",
+            "basic_eps": 1.66,
+            "parent_net_profit": 1_102_542_802,
+        },
+    ]
+    pack["modules"]["C6"]["evidence"][0]["value"] = 457.0
+
+    report = compose_general_report(pack, scene="company", depth="deep")
+
+    assert "高于参考情景上沿 95.04" in report
+    assert "位于参考情景 77.76 至 95.04 之间" not in report
+    assert "利润增速假设 +522.8%" not in report
+    assert "对应价格敏感性约 2,846" not in report
+    assert "历史年度利润增速锚经稳健约束后为 +40.0%" in report
+
+
+def test_company_deep_report_keeps_unavailable_peer_commentary_out_of_body():
+    report = compose_general_report(_company_pack(), scene="company", depth="deep")
+
+    assert "尚未取得三家可比公司" not in report
+    assert "证据暂缺" not in report
+    assert "以公司自身的增长、盈利能力、现金回报与估值作为纵向基准" in report
+
+
+def test_company_deep_scenarios_use_available_peer_multiples_without_outliers():
+    pack = _company_pack()
+    pack["financial_history"] = [
+        {
+            "report_date": "2026-03-31",
+            "period_label": "2026Q1",
+            "basic_eps": 2.19,
+            "parent_net_profit": 1_461_248_353,
+        },
+        {
+            "report_date": "2025-12-31",
+            "period_label": "2025FY",
+            "basic_eps": 2.48,
+            "parent_net_profit": 1_648_022_652,
+        },
+        {
+            "report_date": "2025-03-31",
+            "period_label": "2025Q1",
+            "basic_eps": 0.35,
+            "parent_net_profit": 234_630_087,
+        },
+        {
+            "report_date": "2024-12-31",
+            "period_label": "2024FY",
+            "basic_eps": 1.66,
+            "parent_net_profit": 1_102_542_802,
+        },
+    ]
+    pack["_meta"] = {
+        "peer_comparison": [
+            {"symbol": "300223", "pe_ttm": 111.55},
+            {"symbol": "688018", "pe_ttm": 31.31},
+            {"symbol": "688385", "pe_ttm": 174.17},
+        ]
+    }
+
+    report = compose_general_report(pack, scene="company", depth="deep")
+
+    assert "估值假设 53.6 倍" in report
+    assert "估值假设 71.4 倍" in report
+    assert "估值假设 89.3 倍" in report
+    assert "估值假设 174.2 倍" not in report
 
 
 def test_all_fifteen_lenses_keep_distinct_framework_contracts():

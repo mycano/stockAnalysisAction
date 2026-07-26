@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import math
 import re
 from collections.abc import Iterable, Mapping
+from statistics import median
 from typing import Any
 
 from .lens_engine import load_lens_definitions
@@ -252,13 +254,15 @@ def _fact_lines(pack: Mapping[str, Any], modules: Iterable[str], *, limit: int =
 
 
 def _metric_value(pack: Mapping[str, Any], *metrics: str) -> float | None:
-    for item in reversed(_metric_items(pack, include_conditional=True)):
-        if item.get("metric") not in metrics:
-            continue
-        try:
-            return float(item["value"])
-        except (TypeError, ValueError):
-            continue
+    items = _metric_items(pack, include_conditional=True)
+    for metric in metrics:
+        for item in reversed(items):
+            if item.get("metric") != metric:
+                continue
+            try:
+                return float(item["value"])
+            except (TypeError, ValueError):
+                continue
     return None
 
 
@@ -322,6 +326,69 @@ def _peer_lines(pack: Mapping[str, Any]) -> list[str]:
                 + "。"
             )
     return lines
+
+
+def _trailing_eps(pack: Mapping[str, Any]) -> float | None:
+    history = list(pack.get("financial_history") or [])
+    annual = next(
+        (row for row in history if str(row.get("period_label") or "").endswith("FY")),
+        None,
+    )
+    if not annual or annual.get("basic_eps") in (None, 0):
+        return None
+    latest = history[0] if history else annual
+    latest_label = str(latest.get("period_label") or "")
+    if latest is annual or latest_label.endswith("FY"):
+        return float(annual["basic_eps"])
+    latest_year = str(latest.get("report_date") or "")[:4]
+    if not latest_year.isdigit() or latest.get("basic_eps") is None:
+        return float(annual["basic_eps"])
+    prior_label = latest_label.replace(latest_year, str(int(latest_year) - 1), 1)
+    prior = next(
+        (row for row in history[1:] if str(row.get("period_label") or "") == prior_label),
+        None,
+    )
+    if not prior or prior.get("basic_eps") is None:
+        return float(annual["basic_eps"])
+    value = float(annual["basic_eps"]) + float(latest["basic_eps"]) - float(prior["basic_eps"])
+    return value if math.isfinite(value) and value > 0 else None
+
+
+def _normalized_growth_anchor(pack: Mapping[str, Any]) -> float:
+    annual = [
+        row
+        for row in pack.get("financial_history") or []
+        if str(row.get("period_label") or "").endswith("FY")
+        and row.get("parent_net_profit") not in (None, 0)
+    ]
+    growth_rates = [
+        (float(current["parent_net_profit"]) / float(previous["parent_net_profit"]) - 1) * 100
+        for current, previous in zip(annual, annual[1:])
+        if float(previous["parent_net_profit"]) > 0
+    ]
+    anchor = median(growth_rates[:3]) if growth_rates else 0.0
+    return max(-20.0, min(anchor, 40.0))
+
+
+def _scenario_multiples(pack: Mapping[str, Any]) -> tuple[float, float, float]:
+    peer_pes = sorted(
+        float(peer["pe_ttm"])
+        for peer in (pack.get("_meta") or {}).get("peer_comparison") or []
+        if peer.get("pe_ttm") is not None
+        and math.isfinite(float(peer["pe_ttm"]))
+        and 0 < float(peer["pe_ttm"]) <= 120
+    )
+    if len(peer_pes) >= 2:
+        base = median(peer_pes)
+        return (
+            max(peer_pes[0], base * 0.75),
+            base,
+            min(peer_pes[-1], base * 1.25),
+        )
+    gross_margin = _metric_value(pack, "gross_margin") or 0.0
+    growth = _normalized_growth_anchor(pack)
+    base = 22.0 + (5.0 if growth >= 20 else 0.0) + (3.0 if gross_margin >= 40 else 0.0)
+    return base * 0.75, base, base * 1.25
 
 
 def _is_active_fund(pack: Mapping[str, Any]) -> bool:
@@ -465,7 +532,8 @@ def _section_body(pack: Mapping[str, Any], scene: str, section_id: str, depth: s
         ]
     if scene == "company" and section_id == "competition":
         return [
-            "高毛利与核心产品收入为定价权提供间接支持，但竞争优势仍需由市场份额、终端需求和渠道健康度持续验证。",
+            "高毛利与核心产品收入为定价权提供间接支持；竞争强弱可由产品收入、毛利率、"
+            "终端需求和现金回款的同向变化持续跟踪。",
             "最先需要观察的恶化信号是核心产品收入减速、毛利率下降与现金回款转弱同时出现。",
             "",
             *facts,
@@ -486,11 +554,19 @@ def _section_body(pack: Mapping[str, Any], scene: str, section_id: str, depth: s
                 )
             )
             if pe is not None
-            else "当前只发布价格观察条件，不给出缺少可复算输入的精确目标价。",
+            else "估值判断以最新价格、盈利与现金回报的相互关系为核心。",
         ]
         if price is not None and low is not None and high is not None:
+            lower, upper = sorted((low, high))
+            relation = (
+                f"低于参考情景下沿 {lower:.2f}"
+                if price < lower
+                else f"高于参考情景上沿 {upper:.2f}"
+                if price > upper
+                else f"位于参考情景 {lower:.2f} 至 {upper:.2f} 之间"
+            )
             lines.append(
-                f"当前价格约 {price:.2f}，位于参考情景 {low:.2f} 至 {high:.2f} 之间；"
+                f"当前价格约 {price:.2f}，{relation}；"
                 "区间仅用于检验盈利与估值敏感性，不是买卖指令。"
             )
         if depth == "deep" and pe is not None:
@@ -850,7 +926,7 @@ def _section_body(pack: Mapping[str, Any], scene: str, section_id: str, depth: s
                 *history,
             ]
             if len(history) >= 2
-            else ["现有可比期间不足两个，本节不发布历史阶段类比。"]
+            else _fact_lines(pack, ("C2", "C3"), limit=4)
         )
     if scene == "company" and section_id == "peers":
         peers = _peer_lines(pack)
@@ -860,31 +936,29 @@ def _section_body(pack: Mapping[str, Any], scene: str, section_id: str, depth: s
                 *peers,
             ]
             if len(peers) >= 3
-            else ["尚未取得三家可比公司的同口径事实，本节不发布横向优劣排序。"]
+            else [
+                "以公司自身的增长、盈利能力、现金回报与估值作为纵向基准：",
+                *_fact_lines(pack, ("C2", "C3", "C6"), limit=6),
+            ]
         )
     if section_id == "scenarios":
-        growth = _metric_value(pack, "parent_net_profit_yoy_pct", "revenue_yoy_pct") or 0.0
-        pe = _metric_value(pack, "pe_ttm", "pe_static_proxy") or 22.0
-        price = _metric_value(pack, "market_quote")
-        eps = price / pe if price is not None and pe > 0 else None
+        eps = _trailing_eps(pack)
+        growth = _normalized_growth_anchor(pack)
+        low_pe, base_pe, high_pe = _scenario_multiples(pack)
         scenario_rows = (
-            (
-                "悲观",
-                max(growth - 10.0, -15.0),
-                max(pe - 4.0, 12.0),
-            ),
-            ("基准", growth, pe),
-            ("乐观", growth + 10.0, pe + 3.0),
+            ("悲观", max(growth - 15.0, -25.0), low_pe),
+            ("基准", growth, base_pe),
+            ("乐观", min(growth + 10.0, 50.0), high_pe),
         )
+        if eps is None:
+            return _fact_lines(pack, ("C2", "C3", "C6", "C7"), limit=6)
         return [
+            f"以下敏感性以可复算的滚动每股收益约 {eps:.2f} 元为起点，"
+            f"历史年度利润增速锚经稳健约束后为 {growth:+.1f}%。",
             *(
                 f"- {name}情景：利润增速假设 {scenario_growth:+.1f}%，"
                 f"估值假设 {scenario_pe:.1f} 倍"
-                + (
-                    f"，对应价格敏感性约 {eps * (1 + scenario_growth / 100) * scenario_pe:.2f}"
-                    if eps is not None
-                    else ""
-                )
+                + f"，对应价格敏感性约 {eps * (1 + scenario_growth / 100) * scenario_pe:.2f}"
                 + "；触发信号由收入、现金流和估值倍数共同验证。"
                 for name, scenario_growth, scenario_pe in scenario_rows
             ),
@@ -945,6 +1019,13 @@ def compose_general_report(
         lines.extend([f"## {section.heading}", ""])
         lines.extend(_section_body(pack, scene, section.section_id, depth))
         lines.append("")
+    if scene in {"company", "fund"} and depth in {"quick", "standard"}:
+        lines.extend(
+            [
+                "如需进一步展开同业对比、多期验证和情景分析，可继续要求“深度分析”。",
+                "",
+            ]
+        )
     lines.extend([DISCLAIMER, "投资有风险，决策需结合自身目标与风险承受能力。"])
     report = "\n".join(lines).strip()
     violations = contract.validate(report)

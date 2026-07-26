@@ -46,22 +46,8 @@ def _user_limitations(
         return (
             "基金持仓与规模采用最近公开披露口径，不代表报告日的实时持仓。",
         )
-    if not include_valuation:
-        return ()
-    accepted = {"accepted", "strongly_supported", "supported", "derived_verified"}
-    market_cap_available = any(
-        item.get("metric") == "total_market_cap"
-        and item.get("value") is not None
-        and str(item.get("validation_status") or "").lower() in accepted
-        for section in (pack.get("modules") or {}).values()
-        for item in section.get("evidence") or []
-    )
-    if market_cap_available:
-        return ()
-    return (
-        "本次未取得可独立验证的最新总市值，因此未发布依赖总市值的精确绝对估值；"
-        "报告仍保留相对估值、经营判断与价格观察条件。",
-    )
+    del pack, include_valuation
+    return ()
 
 
 def _print_user_report(

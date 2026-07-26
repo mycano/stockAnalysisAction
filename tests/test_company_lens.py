@@ -52,6 +52,25 @@ def test_frozen_snapshot_is_content_addressed_and_ignores_generation_time():
     assert first["evidence"]["symbol"] == "600519"
 
 
+def test_frozen_snapshot_keeps_peer_facts_used_by_deep_report():
+    pack = _pack()
+    pack["_meta"]["peer_comparison"] = [
+        {
+            "symbol": "300223",
+            "name": "北京君正",
+            "period": "2026Q1",
+            "parent_net_profit": 319_000_000,
+            "roe_weighted": 2.54,
+            "pe_ttm": 48.0,
+            "sources": ["market", "financial"],
+        }
+    ]
+
+    snapshot = freeze_company_evidence(pack)
+
+    assert snapshot["evidence"]["_meta"]["peer_comparison"] == pack["_meta"]["peer_comparison"]
+
+
 def test_company_lenses_and_committee_consume_one_frozen_snapshot():
     snapshot = freeze_company_evidence(_pack())
     opinions = build_company_lens_opinions(snapshot, research_question="长期商业质量、资本配置和估值安全边际")

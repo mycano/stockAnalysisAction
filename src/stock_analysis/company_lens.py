@@ -82,6 +82,7 @@ def freeze_company_evidence(pack: dict[str, Any]) -> dict[str, Any]:
                 "publication_cutoff_audit",
                 "basis_conflicts",
                 "primary_conflicts",
+                "peer_comparison",
             )
         },
     }
