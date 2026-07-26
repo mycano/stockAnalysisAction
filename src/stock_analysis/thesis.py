@@ -88,7 +88,7 @@ def _persist_version(document: dict[str, Any], event_type: str, changes: list[st
 def create_thesis(company: dict[str, Any]) -> tuple[dict[str, Any], Path]:
     path = thesis_path(str(company["symbol"]))
     if path.exists() or thesis_version_path(str(company["symbol"]), 1).exists():
-        raise ValueError("论文已存在；请显式使用 thesis-update、thesis-review 或 thesis-invalidate")
+        raise ValueError("投资论文已存在；请明确选择更新、复核或失效操作")
     created_at = _now()
     evidence = company["_meta"]
     document = {
@@ -135,7 +135,7 @@ def _append_version(
 ) -> tuple[dict[str, Any] | None, Path, list[str]]:
     path = thesis_path(str(company["symbol"]))
     if not path.exists():
-        return None, path, ["尚未创建论文；请先运行 thesis-create"]
+        return None, path, ["尚未创建投资论文，请先明确创建一份新论文"]
     previous_document = json.loads(path.read_text(encoding="utf-8"))
     previous_version = int(previous_document.get("version") or 1)
     previous_version_path = thesis_version_path(str(company["symbol"]), previous_version)
@@ -153,7 +153,7 @@ def _append_version(
         previous_document = migrated
     changes = _evidence_changes(previous_document.get("evidence_snapshot") or {}, company)
     if not changes:
-        changes.append("未发现可由当前结构化 Evidence 自动判定的变化")
+        changes.append("未发现可由当前结构化证据自动判定的变化")
     document = deepcopy(previous_document)
     document["schema_version"] = "2.0"
     document["version"] = previous_version + 1
@@ -191,8 +191,12 @@ def compare_theses(symbol: str, from_version: int | str, to_version: int | str) 
     before_path = thesis_version_path(symbol, from_version)
     after_path = thesis_version_path(symbol, to_version)
     if not before_path.exists() or not after_path.exists():
-        missing = [str(path) for path in (before_path, after_path) if not path.exists()]
-        raise ValueError(f"论文版本不存在：{', '.join(missing)}")
+        missing = [
+            str(number)
+            for number, path in ((from_number, before_path), (to_number, after_path))
+            if not path.exists()
+        ]
+        raise ValueError(f"投资论文版本不存在：{', '.join(missing)}")
     before = json.loads(before_path.read_text(encoding="utf-8"))
     after = json.loads(after_path.read_text(encoding="utf-8"))
     changed_fields = [

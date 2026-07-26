@@ -729,11 +729,29 @@ def evaluate_safety_gate(
         )
         == trade_period
     }
+    capabilities = {
+        "research_view": bool(publishable_claims),
+        "price_judgment": False,
+        "absolute_valuation": False,
+        "relative_valuation": False,
+        "personalized_action": False,
+    }
     if asset_type == "company":
-        if not _is_positive_number(current_metrics.get("market_quote")):
+        has_price = _is_positive_number(current_metrics.get("market_quote"))
+        has_market_cap = _is_positive_number(current_metrics.get("total_market_cap"))
+        has_relative_anchor = any(
+            _is_positive_number(metrics.get(metric))
+            for metric in ("pe_ttm", "pe_static_proxy", "pb", "pb_reported_proxy")
+        )
+        capabilities.update(
+            {
+                "price_judgment": has_price and (has_market_cap or has_relative_anchor),
+                "absolute_valuation": has_market_cap,
+                "relative_valuation": has_relative_anchor,
+            }
+        )
+        if not has_price:
             add("PRICE_UNAVAILABLE", PublicationDecision.BLOCK_ACTION, "当前价格不可得，估值与行动输出被阻断。")
-        if not _is_positive_number(current_metrics.get("total_market_cap")):
-            add("MARKET_CAP_UNAVAILABLE", PublicationDecision.BLOCK_ACTION, "总市值不可得，反向估值与行动输出被阻断。")
     else:
         price_rows = (evidence.get("price_volume") or {}).get("rows") or []
         latest_market = (evidence.get("premium_discount") or {}).get("latest") or {}
@@ -752,11 +770,19 @@ def evaluate_safety_gate(
             latest_price = latest_market.get("close") or latest_market.get("price")
         if not _is_positive_number(latest_price):
             add("PRICE_UNAVAILABLE", PublicationDecision.BLOCK_ACTION, "场内价格不可得，估值与行动输出被阻断。")
+        capabilities["price_judgment"] = _is_positive_number(latest_price)
 
     execution = evidence.get("execution_cost_model") or {}
     execution_status = execution.get("model_status") or metrics.get("execution_cost_model_status")
     if execution_status != "scenario_complete":
         add("EXECUTION_UNAVAILABLE", PublicationDecision.BLOCK_ACTION, "流动性或交易成本输入不完整，交易行动被阻断。")
+    personalized_context = meta.get("personalized_context") or {}
+    capabilities["personalized_action"] = (
+        capabilities["price_judgment"]
+        and execution_status == "scenario_complete"
+        and bool(personalized_context.get("holdings_complete"))
+        and bool(personalized_context.get("risk_profile_complete"))
+    )
 
     decisions = {item["decision"] for item in issues}
     if PublicationDecision.BLOCK_REPORT.value in decisions:
@@ -765,7 +791,43 @@ def evaluate_safety_gate(
         decision = PublicationDecision.BLOCK_ACTION
     else:
         decision = PublicationDecision.PUBLISH
-    return {"decision": decision.value, "issues": issues}
+    return {"decision": decision.value, "issues": issues, "capabilities": capabilities}
+
+
+def build_general_claim_context(
+    snapshot: dict[str, Any],
+    *,
+    asset_type: str,
+) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+    """Build claim publication state without invoking any Lens or committee."""
+
+    evidence = snapshot["evidence"]
+    publishable, unpublished = compile_metric_claims(
+        evidence,
+        claim_prefix=f"{asset_type}-general-claim",
+    )
+    safety_gate = evaluate_safety_gate(
+        evidence,
+        [claim.to_dict() for claim in publishable],
+        asset_type=asset_type,
+    )
+    context = {
+        "schema_version": "1.0",
+        "evidence_snapshot_id": snapshot["snapshot_id"],
+        "mode": "general",
+        "members": [],
+        "publishable_claims": [claim.to_dict() for claim in publishable],
+        "report_blockers": [],
+        "unpublished_questions": [claim.to_dict() for claim in unpublished],
+        "publication_status": safety_gate["decision"],
+        "safety_gate": safety_gate,
+        "research_question": None,
+        "context_id": _stable_claim_id(
+            f"{asset_type}-general-context",
+            [snapshot["snapshot_id"], safety_gate["decision"]],
+        ),
+    }
+    return context, {}
 
 
 def build_claim_audit_artifacts(
@@ -799,6 +861,9 @@ def build_claim_audit_artifacts(
         for item in opinion.get("unpublished_questions") or []:
             item_id = str(item.get("claim_id") or item.get("question_id"))
             unpublished_by_id.setdefault(item_id, item)
+    for item in committee.get("unpublished_questions") or []:
+        item_id = str(item.get("claim_id") or item.get("question_id"))
+        unpublished_by_id.setdefault(item_id, item)
     unpublished = list(unpublished_by_id.values())
     safety_gate = committee.get("safety_gate") or {}
     return {

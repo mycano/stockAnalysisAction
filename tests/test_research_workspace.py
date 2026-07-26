@@ -85,16 +85,14 @@ def test_workspace_creates_recoverable_stage_artifacts(tmp_path):
 
     assert manifest["status"] == "ready_for_analysis"
     assert manifest["stages"]["evidence_collection"] == "complete"
-    assert manifest["stages"]["expert_analysis"] == "complete"
-    assert manifest["stages"]["committee_review"] == "complete"
+    assert manifest["stages"]["expert_analysis"] == "not_applicable"
+    assert manifest["stages"]["committee_review"] == "not_applicable"
     assert set(manifest["artifacts"]) == {
         "research_plan",
         "company_evidence",
         "evidence_summary",
-        "expert_readiness",
-        "company_opinions",
-        "committee_synthesis",
-        "committee_review",
+        "claim_review",
+        "publication_review",
         "decision_memo",
         "institutional_report",
         "evidence_manifest",
@@ -104,29 +102,36 @@ def test_workspace_creates_recoverable_stage_artifacts(tmp_path):
     }
     assert (workspace / "workspace.json").exists()
     report = (workspace / manifest["artifacts"]["institutional_report"]["path"]).read_text(encoding="utf-8")
-    assert "## 一、执行摘要" in report
-    assert "## 二、行情、商业质量与核心矛盾" in report
-    assert "## 六、投委会审议" in report
-    assert "巴菲特" in report
+    for heading in (
+        "## 投资结论",
+        "## 公司与商业模式",
+        "## 核心投资逻辑",
+        "## 行业与竞争格局",
+        "## 经营与财务质量",
+        "## 估值",
+        "## 催化剂",
+        "## 主要风险",
+        "## 行动与观察框架",
+    ):
+        assert heading in report
+    assert "巴菲特" not in report
     assert "冻结 Evidence" not in report
     assert "committee:" not in report
     assert "sha256:" not in report
     assert "审计与待核验事项" not in report
-    assert "## 五、估值与情景分析" in report
-    assert "## 八、投委会结论与条件化动作" in report
+    assert "投委会审议" not in report
     assert "证据不足，维持观察" not in report
     assert "证据暂缺" not in report
     assert "manual_review" not in report
     assert "Evidence Dashboard" not in report
-    assert "适用条件" in report
-    assert "失效条件" in report
+    assert "工作流" not in report
     assert "市场份额正在下降" not in report
     assert "由于缺乏市场份额数据，应保持谨慎" not in report
     assert "由于证据不足" not in report
     assert "数据有限，因此" not in report
     assert "仍需更多信息验证" not in report
     unpublished = json.loads((workspace / "unpublished_claims.json").read_text(encoding="utf-8"))
-    assert any("市场份额" in item.get("question", "") for item in unpublished["claims"])
+    assert unpublished["claims"]
     for filename in (
         "evidence_manifest.json",
         "claim_ledger.json",
@@ -166,7 +171,7 @@ def test_workspace_uses_previous_date_as_diff_baseline(tmp_path):
     assert json.loads((workspace / "workspace.json").read_text(encoding="utf-8"))["symbol"] == "600519"
 
 
-def test_research_cli_prints_report_and_workspace_path(monkeypatch, tmp_path, capsys):
+def test_research_cli_prints_report_without_workspace_path(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(app, "build_company_evidence", lambda *_: _pack())
 
     assert app.run([
@@ -174,13 +179,52 @@ def test_research_cli_prints_report_and_workspace_path(monkeypatch, tmp_path, ca
         "--workspace-dir", str(tmp_path), "--research-question", "短线趋势、量价突破和止损",
     ]) == 0
 
-    output = capsys.readouterr().out
-    assert "个股深度研究报告 · 投委会" in output
-    assert f"Research Workspace: {tmp_path / '600519' / '20260710'}" in output
-    opinions = json.loads((tmp_path / "600519" / "20260710" / "04-company-lens-opinions.json").read_text(encoding="utf-8"))
-    assert len(opinions) == 6
-    assert {"livermore", "o_neil", "minervini"} <= set(opinions)
-    assert "研究问题**：短线趋势、量价突破和止损" in output
+    captured = capsys.readouterr()
+    output = captured.out
+    assert "个股研究报告" in output
+    assert "Research Workspace:" not in output
+    assert "STOCK_ANALYSIS_WORKSPACE=" not in captured.err
+    workspace = tmp_path / "600519" / "20260710"
+    assert not (workspace / "04-company-lens-opinions.json").exists()
+    manifest = json.loads((workspace / "workspace.json").read_text(encoding="utf-8"))
+    assert manifest["committee_members"] == []
+    assert manifest["stages"]["expert_analysis"] == "not_applicable"
+    assert "投委会" not in output
+
+
+def test_research_cli_emits_workspace_only_to_internal_stderr(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(app, "build_company_evidence", lambda *_: _pack())
+
+    assert app.run([
+        "--market", "research", "--symbol", "600519", "--date", "20260710",
+        "--workspace-dir", str(tmp_path), "--emit-internal-path",
+    ]) == 0
+
+    captured = capsys.readouterr()
+    assert "STOCK_ANALYSIS_WORKSPACE=" not in captured.out
+    assert (
+        f"STOCK_ANALYSIS_WORKSPACE={tmp_path / '600519' / '20260710'}"
+        in captured.err
+    )
+
+
+def test_explicit_lens_path_creates_lens_artifacts(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(app, "build_company_evidence", lambda *_: _pack())
+
+    assert app.run([
+        "--market", "research", "--symbol", "600519", "--date", "20260710",
+        "--workspace-dir", str(tmp_path), "--research-mode", "lens",
+        "--lens-mode", "single", "--lens", "buffett",
+    ]) == 0
+
+    captured = capsys.readouterr()
+    workspace = tmp_path / "600519" / "20260710"
+    manifest = json.loads((workspace / "workspace.json").read_text(encoding="utf-8"))
+    assert manifest["research_mode"] == "lens"
+    assert manifest["committee_members"] == ["buffett"]
+    assert manifest["stages"]["expert_analysis"] == "complete"
+    assert (workspace / "04-company-lens-opinions.json").exists()
+    assert "巴菲特投资框架" in captured.out
 
 
 def test_missing_price_blocks_actions_without_suppressing_supported_research(tmp_path):
@@ -196,8 +240,9 @@ def test_missing_price_blocks_actions_without_suppressing_supported_research(tmp
     )
 
     assert manifest["status"] == "action_blocked"
-    assert "## 一、执行摘要" in report
-    assert "估值或交易执行行动被阻断" in report
+    assert "## 投资结论" in report
+    assert "## 行动与观察框架" in report
+    assert "具体仓位比例" not in report
     assert "建议保持谨慎" not in report
     assert "维持观察" not in report
 
@@ -212,5 +257,5 @@ def test_explicit_identity_conflict_blocks_the_research_report(tmp_path):
     )
 
     assert manifest["status"] == "blocked_report"
-    assert "## 重大安全阻断" in report
-    assert "## 一、执行摘要" not in report
+    assert "当前公开信息无法可靠确认研究对象" in report
+    assert "## 投资结论" not in report

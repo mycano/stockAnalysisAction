@@ -21,10 +21,11 @@
           "date": {"type": "string", "pattern": "^[0-9]{8}$"},
           "session": {"type": "string", "enum": ["auto", "pre-market", "intraday", "after-market", "closed"]},
           "scope": {"type": "string", "enum": ["local", "global"]},
+          "depth": {"type": "string", "enum": ["quick", "standard", "deep"]},
           "intent": {"type": "string"}
         }
       },
-      "defaults": {"market": "auto", "session": "auto", "scope": "local"},
+      "defaults": {"market": "auto", "session": "auto", "scope": "local", "depth": "standard"},
       "routing": {
         "default_route": "daily",
         "rules": [
@@ -36,13 +37,13 @@
       "workflows": {
         "daily": {
           "workflow_id": "market.daily",
-          "argv_template": ["stock-analysis", "--market", "daily", "--emit-evidence"],
+          "argv_template": ["stock-analysis", "--market", "daily", "--depth", "{depth}", "--emit-evidence"],
           "optional_argv": {"date": ["--date", "{date}"]},
           "output_contract": {"description": "先报告事实、数据质量与缺口，再给条件式观察清单。", "stdout_required": true, "required_artifacts": []}
         },
         "global": {
           "workflow_id": "market.global",
-          "argv_template": ["stock-analysis", "--market", "global", "--emit-evidence"],
+          "argv_template": ["stock-analysis", "--market", "global", "--depth", "{depth}", "--emit-evidence"],
           "optional_argv": {"date": ["--date", "{date}"]},
           "output_contract": {"description": "明确各市场交易时段和数据截止时间，不混合不同交易日。", "stdout_required": true, "required_artifacts": []}
         }
@@ -99,20 +100,26 @@
     {
       "id": "analyze",
       "command_id": "stock-analysis.analyze",
-      "summary": "股票、ETF 和基金的统一研究入口，默认使用 standard 深度。",
+      "summary": "股票、ETF 和基金的统一研究入口；默认使用通用 standard，显式专家框架优先进入 Lens 研究。",
       "request_schema": {
         "required": ["asset"],
         "properties": {
           "asset": {"type": "string", "minLength": 1},
           "asset_type": {"type": "string", "enum": ["auto", "company", "fund"]},
           "depth": {"type": "string", "enum": ["quick", "standard", "deep"]},
+          "research_mode": {"type": "string", "enum": ["general", "lens"]},
+          "general_mode": {"type": ["string", "null"], "enum": ["quick", "standard", "deep", null]},
+          "lens_mode": {"type": ["string", "null"], "enum": ["single", "parallel", "adversarial", "committee", null]},
+          "lens": {"type": "string", "minLength": 1},
+          "lenses": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "delivery_budget": {"type": "string", "enum": ["concise", "full"]},
           "capabilities": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
           "intent": {"type": "string"},
           "date": {"type": "string", "pattern": "^[0-9]{8}$"},
           "research_question": {"type": "string"}
         }
       },
-      "defaults": {"asset_type": "auto", "depth": "standard", "capabilities": []},
+      "defaults": {"asset_type": "auto", "research_mode": "general", "depth": "standard", "capabilities": []},
       "routing": {
         "default_route": "standard",
         "deep_only_capabilities": [
@@ -125,6 +132,7 @@
           "position_decision"
         ],
         "rules": [
+          {"route": "lens", "when": {"research_mode": "lens"}, "reason_code": "ANALYZE_LENS_EXPLICIT"},
           {"route": "deep", "when_any_capability": ["reverse_valuation", "multi_scenario", "committee", "historical_comparison", "full_audit", "fund_lookthrough", "position_decision"], "reason_code": "ANALYZE_DEEP_CAPABILITY"},
           {"route": "quick", "when": {"depth": "quick"}, "reason_code": "ANALYZE_QUICK_EXPLICIT"},
           {"route": "deep", "when": {"depth": "deep"}, "reason_code": "ANALYZE_DEEP_EXPLICIT"},
@@ -134,21 +142,33 @@
       "workflows": {
         "quick": {
           "workflow_id": "analyze.quick",
-          "argv_template": ["stock-analysis", "--market", "{quick_market}", "--symbol", "{asset}", "--emit-evidence"],
+          "argv_template": ["stock-analysis", "--market", "research", "--symbol", "{asset}", "--asset-type", "{asset_type}", "--depth", "quick", "--emit-internal-path"],
           "optional_argv": {"date": ["--date", "{date}"]},
-          "output_contract": {"description": "提供边界明确的快速证据复核，显式列出未覆盖的深度能力。", "stdout_required": true, "required_artifacts": []}
+          "output_contract": {"description": "交付方向明确、结构完整的快速研究报告；内部工作区保持隐藏。", "stdout_required": true, "required_artifacts": ["workspace.json"]}
         },
         "standard": {
           "workflow_id": "analyze.standard",
-          "argv_template": ["stock-analysis", "--market", "research", "--symbol", "{asset}", "--asset-type", "{asset_type}"],
+          "argv_template": ["stock-analysis", "--market", "research", "--symbol", "{asset}", "--asset-type", "{asset_type}", "--depth", "standard", "--emit-internal-path"],
           "optional_argv": {"date": ["--date", "{date}"], "research_question": ["--research-question", "{research_question}"]},
-          "output_contract": {"description": "生成可恢复、可审计的标准研究工作区并保留证据缺口。", "stdout_required": true, "required_artifacts": ["workspace.json"]}
+          "output_contract": {"description": "交付完整、可直接阅读的标准研究报告；审计工作区保持内部可恢复。", "stdout_required": true, "required_artifacts": ["workspace.json"]}
         },
         "deep": {
           "workflow_id": "analyze.deep",
-          "argv_template": ["stock-analysis", "--market", "research", "--symbol", "{asset}", "--asset-type", "{asset_type}", "--mode", "committee"],
+          "argv_template": ["stock-analysis", "--market", "research", "--symbol", "{asset}", "--asset-type", "{asset_type}", "--depth", "deep", "--emit-internal-path"],
           "optional_argv": {"date": ["--date", "{date}"], "research_question": ["--research-question", "{research_question}"]},
-          "output_contract": {"description": "在同一冻结证据快照上完成深度研究；不得让宿主改写 Evidence、Claim 或 Finding。", "stdout_required": true, "required_artifacts": ["workspace.json"]}
+          "output_contract": {"description": "交付增强调查、交叉验证、多模型估值与情景研究报告；内部审计对象不得展示。", "stdout_required": true, "required_artifacts": ["workspace.json"]}
+        },
+        "lens": {
+          "workflow_id": "analyze.lens",
+          "argv_template": ["stock-analysis", "--market", "research", "--symbol", "{asset}", "--asset-type", "{asset_type}", "--research-mode", "lens", "--lens-mode", "{lens_mode}", "--emit-internal-path"],
+          "optional_argv": {
+            "date": ["--date", "{date}"],
+            "research_question": ["--research-question", "{research_question}"],
+            "lens": ["--lens", "{lens}"],
+            "lenses_csv": ["--lenses", "{lenses_csv}"],
+            "delivery_budget": ["--delivery-budget", "{delivery_budget}"]
+          },
+          "output_contract": {"description": "按显式专家投资框架独立规划证据和报告；不加载通用 quick、standard 或 deep 结构。", "stdout_required": true, "required_artifacts": ["workspace.json"]}
         }
       },
       "redirects": [
@@ -169,11 +189,12 @@
           "mode": {"type": "string", "enum": ["facts", "standard", "thesis-impact"]},
           "period": {"type": "string"},
           "comparison_period": {"type": "string"},
+          "depth": {"type": "string", "enum": ["quick", "standard", "deep"]},
           "date": {"type": "string", "pattern": "^[0-9]{8}$"},
           "intent": {"type": "string"}
         }
       },
-      "defaults": {"mode": "standard"},
+      "defaults": {"mode": "standard", "depth": "standard"},
       "routing": {
         "default_route": "standard",
         "rules": [
@@ -186,19 +207,19 @@
         "facts": {
           "workflow_id": "earnings.facts",
           "argv_template": ["stock-analysis", "--market", "earnings", "--symbol", "{asset}", "--emit-evidence"],
-          "optional_argv": {"date": ["--date", "{date}"]},
+          "optional_argv": {"date": ["--date", "{date}"], "depth": ["--depth", "{depth}"]},
           "output_contract": {"description": "只报告已披露事实并明确披露期、可比期间与缺失原文。", "stdout_required": true, "required_artifacts": []}
         },
         "standard": {
           "workflow_id": "earnings.standard",
           "argv_template": ["stock-analysis", "--market", "earnings", "--symbol", "{asset}", "--emit-evidence"],
-          "optional_argv": {"date": ["--date", "{date}"]},
+          "optional_argv": {"date": ["--date", "{date}"], "depth": ["--depth", "{depth}"]},
           "output_contract": {"description": "区分财报事实、变化、解释和未知项，不在缺少原始财报时推断。", "stdout_required": true, "required_artifacts": []}
         },
         "thesis-impact": {
           "workflow_id": "earnings.thesis-impact",
           "argv_template": ["stock-analysis", "--market", "earnings", "--symbol", "{asset}", "--emit-evidence"],
-          "optional_argv": {"date": ["--date", "{date}"]},
+          "optional_argv": {"date": ["--date", "{date}"], "depth": ["--depth", "{depth}"]},
           "output_contract": {"description": "仅指出对现有论文的潜在影响，论文变更必须交由显式 thesis 动作。", "stdout_required": true, "required_artifacts": []}
         }
       },
@@ -221,10 +242,11 @@
           "end_date": {"type": "string", "pattern": "^[0-9]{8}$"},
           "event": {"type": "string"},
           "causal_claim": {"type": "string"},
+          "depth": {"type": "string", "enum": ["quick", "standard", "deep"]},
           "intent": {"type": "string"}
         }
       },
-      "defaults": {"window_type": "single-session"},
+      "defaults": {"window_type": "single-session", "depth": "standard"},
       "routing": {
         "default_route": "single-session",
         "rules": [
@@ -237,20 +259,20 @@
         "single-session": {
           "workflow_id": "move.single-session",
           "argv_template": ["stock-analysis", "--market", "price-move", "--symbol", "{asset}", "--window-type", "single-session", "--emit-evidence"],
-          "optional_argv": {"date": ["--date", "{date}"]},
-          "output_contract": {"description": "按固定五类报告异动证据。", "stdout_required": true, "required_artifacts": [], "required_sections": ["confirmed_trigger", "plausibly_related", "market_wide_factor", "unsupported_speculation", "unknown"]}
+          "optional_argv": {"date": ["--date", "{date}"], "depth": ["--depth", "{depth}"]},
+          "output_contract": {"description": "按用户可读的异动报告结构区分已确认原因、高相关解释和未知项。", "stdout_required": true, "required_artifacts": []}
         },
         "multi-session": {
           "workflow_id": "move.multi-session",
           "argv_template": ["stock-analysis", "--market", "price-move", "--symbol", "{asset}", "--window-type", "multi-session", "--start-date", "{start_date}", "--emit-evidence"],
-          "optional_argv": {"end_date": ["--date", "{end_date}"]},
-          "output_contract": {"description": "按固定五类报告异动证据。", "stdout_required": true, "required_artifacts": [], "required_sections": ["confirmed_trigger", "plausibly_related", "market_wide_factor", "unsupported_speculation", "unknown"]}
+          "optional_argv": {"end_date": ["--date", "{end_date}"], "depth": ["--depth", "{depth}"]},
+          "output_contract": {"description": "按用户可读的异动报告结构区分已确认原因、高相关解释和未知项。", "stdout_required": true, "required_artifacts": []}
         },
         "event-window": {
           "workflow_id": "move.event-window",
           "argv_template": ["stock-analysis", "--market", "price-move", "--symbol", "{asset}", "--window-type", "event-window", "--event", "{event}", "--emit-evidence"],
-          "optional_argv": {"end_date": ["--date", "{end_date}"]},
-          "output_contract": {"description": "事件窗口只表示分析边界；除非一手证据证实，不得宣称事件导致价格变化。", "stdout_required": true, "required_artifacts": [], "required_sections": ["confirmed_trigger", "plausibly_related", "market_wide_factor", "unsupported_speculation", "unknown"]}
+          "optional_argv": {"end_date": ["--date", "{end_date}"], "depth": ["--depth", "{depth}"]},
+          "output_contract": {"description": "事件窗口只表示分析边界；除非一手证据证实，不得宣称事件导致价格变化。", "stdout_required": true, "required_artifacts": []}
         }
       },
       "redirects": [
@@ -273,10 +295,11 @@
           "sort": {"$ref": "schemas/sort.schema.json"},
           "limit": {"type": "integer", "minimum": 1, "maximum": 100},
           "confirmed": {"type": "boolean"},
+          "depth": {"type": "string", "enum": ["quick", "standard", "deep"]},
           "intent": {"type": "string"}
         }
       },
-      "defaults": {"mode": "explore", "limit": 20, "confirmed": false},
+      "defaults": {"mode": "explore", "limit": 20, "confirmed": false, "depth": "standard"},
       "routing": {
         "default_route": "explore",
         "rules": [
@@ -287,7 +310,7 @@
       "workflows": {
         "execute": {
           "workflow_id": "screen.execute",
-          "argv_template": ["stock-analysis", "--market", "screen", "--fiscal-year", "{fiscal_year}", "--universe-file", "{universe_file}", "--filter", "{filters}", "--sort", "{sort}", "--limit", "{limit}", "--emit-evidence"],
+          "argv_template": ["stock-analysis", "--market", "screen", "--fiscal-year", "{fiscal_year}", "--universe-file", "{universe_file}", "--filter", "{filters}", "--sort", "{sort}", "--limit", "{limit}", "--depth", "{depth}", "--emit-evidence"],
           "repeatable_argv": {"filters": ["--filter", "{item}"]},
           "optional_argv": {},
           "output_contract": {"description": "仅报告 PASS、FAIL、UNKNOWN；缺失值不得转为零或通过。", "stdout_required": true, "required_artifacts": []}
@@ -313,10 +336,11 @@
           "holdings_status": {"type": "string", "enum": ["complete", "partial", "stale", "missing"]},
           "holdings_json": {"type": ["string", "object"]},
           "date": {"type": "string", "pattern": "^[0-9]{8}$"},
+          "depth": {"type": "string", "enum": ["quick", "standard", "deep"]},
           "intent": {"type": "string"}
         }
       },
-      "defaults": {"action": "review", "holdings_status": "missing"},
+      "defaults": {"action": "review", "holdings_status": "missing", "depth": "standard"},
       "routing": {
         "default_route": "review",
         "rules": [
@@ -330,25 +354,25 @@
         "review": {
           "workflow_id": "portfolio.review",
           "argv_template": ["stock-analysis", "--market", "portfolio", "--emit-evidence"],
-          "optional_argv": {"date": ["--date", "{date}"], "holdings_json": ["--holdings-json", "{holdings_json}"]},
+          "optional_argv": {"date": ["--date", "{date}"], "holdings_json": ["--holdings-json", "{holdings_json}"], "depth": ["--depth", "{depth}"]},
           "output_contract": {"description": "持仓非 complete 时只能报告有限事实和缺口，不得给出完整组合结论。", "stdout_required": true, "required_artifacts": []}
         },
         "import": {
           "workflow_id": "portfolio.import",
           "argv_template": ["stock-analysis", "--market", "portfolio", "--holdings-json", "{holdings_json}", "--emit-evidence"],
-          "optional_argv": {"date": ["--date", "{date}"]},
+          "optional_argv": {"date": ["--date", "{date}"], "depth": ["--depth", "{depth}"]},
           "output_contract": {"description": "导入前验证结构和完整性；不得静默合并或覆盖未知持仓。", "stdout_required": true, "required_artifacts": []}
         },
         "stress": {
           "workflow_id": "portfolio.stress",
           "argv_template": ["stock-analysis", "--market", "portfolio", "--holdings-json", "{holdings_json}", "--emit-evidence"],
-          "optional_argv": {"date": ["--date", "{date}"]},
+          "optional_argv": {"date": ["--date", "{date}"], "depth": ["--depth", "{depth}"]},
           "output_contract": {"description": "只有 complete 持仓可形成完整压力测试结论，否则返回阻断和缺口。", "stdout_required": true, "required_artifacts": []}
         },
         "compare": {
           "workflow_id": "portfolio.compare",
           "argv_template": ["stock-analysis", "--market", "portfolio", "--holdings-json", "{holdings_json}", "--emit-evidence"],
-          "optional_argv": {"date": ["--date", "{date}"]},
+          "optional_argv": {"date": ["--date", "{date}"], "depth": ["--depth", "{depth}"]},
           "output_contract": {"description": "只有 complete 持仓可形成完整比较结论，并保留基准与期间。", "stdout_required": true, "required_artifacts": []}
         }
       },

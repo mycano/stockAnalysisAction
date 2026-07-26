@@ -1,54 +1,51 @@
 # Roadmap
 
-`stock-analysis` is available as a CLI, Python package, and generated Agent entrypoints. The next milestone is broadening primary-evidence coverage without weakening its deterministic research contracts.
+v5.0 establishes `stock-analysis` as an investor-facing research system:
+scene-specific report contracts, an independent 15-Lens path, built-in public
+evidence acquisition, deterministic derivations, and a strict delivery boundary
+between private audit artifacts and the report.
 
-## Near Term
+## Near term
 
-- Keep the PyPI package, console script, `--help`, Agent entrypoints, and first-run examples in sync.
-- Keep README screenshots current with real generated output.
-- Add more compact example reports under `reports/`.
-- Improve `diagnose` output so source failures are easy to attach to issues.
-- Add compact examples for auditing the Research Workspace claim ledger.
+- Expand first-party filing connectors for A/HK/US/JP/KR without weakening
+  source and effective-date rules.
+- Add more real-business acceptance fixtures for active funds, cross-border
+  ETFs, portfolio stress, and screening universes.
+- Improve fund attribution and ETF tracking-quality evidence.
+- Add compact, publishable example reports that pass the investor-facing lint.
+- Keep README visuals, bilingual videos, package metadata, and generated Agent
+  entrypoints synchronized with every release.
 
-## Data Quality
+## Research quality
 
-- Expand deterministic tests for quote parsing, symbol normalization, and evidence scoring.
-- Add source-specific fixtures for Tencent, Sina, Eastmoney, Tiantian Fund, and Futu public data.
-- Improve metadata for fallback events, rate limiting, and browser handoff.
-- Keep missing fields visible rather than backfilling them with misleading defaults.
+- Strengthen peer selection and historical comparability checks.
+- Expand reproducible valuation derivations and sensitivity validation.
+- Add more Lens-specific evidence requirements, especially governance,
+  channel, innovation, market-positioning, and transaction-cost evidence.
+- Measure claim usefulness and decision value, not report length or Agent count.
+- Continue reducing boilerplate while preserving risk and falsification signals.
 
-## Market Coverage
+## Evidence coverage
 
-- Strengthen A-share board, fund-flow, risk-calendar, and financial snapshot coverage.
-- Continue hardening HK/US/JP/KR quote fallback and historical K-line consistency.
-- Add more fund profile fields where public routes are stable.
-- Document region-specific limitations before expanding new markets.
+- Prefer regulator, exchange, issuer, fund-company, and index-provider sources
+  for critical facts.
+- Add deterministic conflict resolution for more structured and web sources.
+- Improve PDF table extraction and source-location capture.
+- Preserve silent provider fallback; do not turn tool installation into a user
+  prerequisite.
 
-## Agent Workflows
+## Delivery
 
-- Keep the GitHub Actions daily recap example aligned with the current Evidence Pack contract.
-- Add a cron example for local market notes.
-- Consider MCP only after the CLI and evidence contract are stable.
+- Add investor-facing snapshot tests for every command and report scene.
+- Extend Chinese/English semantic translation for financial metrics.
+- Keep internal JSON, raw field names, paths, and provider errors out of the
+  default interface.
+- Keep material data-boundary notices short and outside the report body.
 
-### Future Roadmap (post-v4.17)
+## Out of scope
 
-The following four items were intentionally moved out of the v4.17 P0/P1 release so it stays focused on the command protocol, multi-host compatibility, and deterministic routing:
-
-- Add dedicated Hermes adapters on top of the stable HostRequest protocol.
-- Add host-side Web/PDF enrichment without moving evidence mutation into the Python Router.
-- Add opt-in anonymous telemetry; it must remain disabled by default.
-- Use real, explicitly collected routing failures to optimize route selection without weakening deterministic rules.
-
-## Community
-
-- Keep issue templates focused on data-source failures, feature requests, lens requests, and docs/examples.
-- Submit small, well-targeted PRs to finance and AI-agent Awesome Lists.
-- Keep social previews, architecture GIFs, and bilingual demo videos aligned with each feature release.
-
-## Out of Scope
-
-- Broker order placement.
-- Auto-trading.
-- Private account scraping.
-- Unverifiable LLM-only recommendations.
-- Hiding data-source failures in polished prose.
+- Broker order placement or auto-trading.
+- Private-account scraping.
+- Fabricating missing financial facts with model inference.
+- Personalized absolute position sizing without holdings and risk context.
+- Publishing internal audit objects as the investor experience.

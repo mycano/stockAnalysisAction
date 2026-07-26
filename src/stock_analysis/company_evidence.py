@@ -7,13 +7,18 @@ company fact.  Empty sections are explicit evidence gaps, never positive data.
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Any
 
+from .calculators import market_cap
 from .execution_costs import build_execution_cost_model
 from .expectations import build_expectation_model
+from .external_evidence import ExternalEvidencePlane, build_default_plane
+from .external_evidence.planner import plan_queries
 from .futu_public import fetch_futu_public_pulse
 from .global_markets import fetch_yahoo_financials
 from .integrations import (
@@ -26,6 +31,7 @@ from .integrations import (
     fetch_jp_kr_financial_snapshot,
     fetch_single_quote,
 )
+from .lens_engine import load_lens_definitions, resolve_lens_ids
 from .normalize import normalize_code
 from .primary_disclosures import load_issuer_primary_facts
 from .research_claims import build_evidence_integrity_audit
@@ -41,6 +47,11 @@ COMPANY_MODULES = {
     "C6": "估值与安全边际",
     "C7": "风险与反证",
     "C8": "催化剂与论文跟踪",
+}
+
+DEEP_PEER_UNIVERSES = {
+    "600519": ("000858", "000568", "600809"),
+    "300750": ("300014", "002460", "300207"),
 }
 def _issuer_primary_facts(symbol: str, trade_date: str) -> dict[str, list[dict[str, Any]]]:
     """Extract verified issuer facts through the generic catalog-driven PDF adapter."""
@@ -86,6 +97,9 @@ def _financial_facts(financials: dict[str, Any]) -> list[dict[str, Any]]:
         "capital_expenditure",
         "cash_dividends_paid",
         "share_repurchases",
+        "total_shares",
+        "shares_outstanding",
+        "issued_shares",
         "net_cash_invest",
         "net_cash_finance",
     )
@@ -290,19 +304,33 @@ def _evidence_id(module: str, item: dict[str, Any]) -> str:
 
 
 def _identify_evidence(sections: dict[str, dict[str, Any]]) -> None:
+    by_metric: dict[str, list[dict[str, Any]]] = {}
     for module, section in sections.items():
         identified = []
         for raw in section["evidence"]:
             item = dict(raw)
-            item["validation_status"] = (
-                "conditional"
-                if item.get("confidence") == "conditional"
-                or item.get("source_type") in {"public_announcement_index", "news_sample"}
-                else "accepted"
-            )
+            if not item.get("validation_status"):
+                item["validation_status"] = (
+                    "conditional"
+                    if item.get("confidence") == "conditional"
+                    or item.get("source_type") in {"public_announcement_index", "news_sample"}
+                    else "accepted"
+                )
             item["evidence_id"] = _evidence_id(module, item)
             identified.append(item)
+            if item.get("metric"):
+                by_metric.setdefault(str(item["metric"]), []).append(item)
         section["evidence"] = identified
+    for section in sections.values():
+        for item in section["evidence"]:
+            input_metrics = item.pop("calculation_input_metrics", None)
+            if not input_metrics:
+                continue
+            item["calculation_input_evidence_ids"] = [
+                by_metric[str(metric)][-1]["evidence_id"]
+                for metric in input_metrics
+                if by_metric.get(str(metric))
+            ]
 
 
 def _section(available: bool, evidence: list[dict[str, Any]], gaps: list[str], **extra: Any) -> dict[str, Any]:
@@ -314,6 +342,62 @@ def _latest_material_period(periods: list[dict[str, Any]]) -> dict[str, Any]:
         "revenue", "parent_net_profit", "operating_cash_flow", "total_assets", "gross_profit",
     }
     return next((row for row in periods if len(material & set(row)) >= 2), periods[0])
+
+
+def derive_market_cap_fact(
+    quote_fact: dict[str, Any],
+    share_facts: list[dict[str, Any]],
+    *,
+    trade_date: str,
+) -> dict[str, Any] | None:
+    """Derive market cap only from a valid price and disclosed share count."""
+
+    price = quote_fact.get("value")
+    price_period = "".join(character for character in str(quote_fact.get("period") or "") if character.isdigit())[:8]
+    if price is None or not price_period or price_period > trade_date:
+        return None
+    candidates = [
+        item
+        for item in share_facts
+        if item.get("metric") in {"total_shares", "shares_outstanding", "issued_shares"}
+        and item.get("value") not in (None, 0)
+    ]
+    dated_candidates = []
+    for shares in candidates:
+        disclosed = "".join(
+            character
+            for character in str(
+                shares.get("published_at")
+                or shares.get("notice_date")
+                or shares.get("period")
+                or ""
+            )
+            if character.isdigit()
+        )[:8]
+        if not disclosed or disclosed > trade_date:
+            continue
+        dated_candidates.append((disclosed, shares))
+    for disclosed, shares in sorted(dated_candidates, key=lambda item: item[0], reverse=True):
+        derived = market_cap(price, shares["value"])
+        if derived is None or derived <= Decimal("0"):
+            continue
+        share_metric = str(shares["metric"])
+        return {
+            "metric": "total_market_cap",
+            "period": price_period,
+            "value": float(derived),
+            "currency": quote_fact.get("currency"),
+            "unit": quote_fact.get("currency"),
+            "source": "deterministic_derived_metric",
+            "source_type": "derived_valuation",
+            "confidence": "conditional",
+            "validation_status": "accepted",
+            "formula": f"market_quote * {share_metric}",
+            "calculation_input_metrics": ["market_quote", share_metric],
+            "share_count_asof": disclosed,
+            "derivation_status": "derived_verified",
+        }
+    return None
 
 
 def _financial_quality_gaps(financials: dict[str, Any]) -> list[str]:
@@ -462,6 +546,16 @@ def build_company_evidence(
     moat_evidence = _moat_proxy_facts(financials) + issuer_primary["C4"]
     growth_evidence = _growth_facts(financials)
     valuation_evidence = [quote_fact] if quote_fact["value"] is not None else []
+    share_facts = [
+        item
+        for item in [
+            *facts,
+            *(issuer_primary.get("C2") or []),
+            *(issuer_primary.get("C5") or []),
+        ]
+        if item.get("metric") in {"total_shares", "shares_outstanding", "issued_shares"}
+    ]
+    valuation_evidence.extend(dict(item) for item in share_facts)
     for metric, value in (
         ("pe_ttm", quote.pe if quote else None),
         ("pb", quote.pb if quote else None),
@@ -481,9 +575,28 @@ def build_company_evidence(
                 "confidence": "primary",
             }
         )
+    if quote and quote.total_market_cap is None:
+        derived_market_cap = derive_market_cap_fact(
+            quote_fact,
+            share_facts,
+            trade_date=trade_date,
+        )
+        if derived_market_cap is not None:
+            valuation_evidence.append(derived_market_cap)
     valuation_evidence.extend(_valuation_facts(financials, quote_fact))
     expectation_model = build_expectation_model(
-        quote.total_market_cap if quote else None,
+        (
+            quote.total_market_cap
+            if quote and quote.total_market_cap is not None
+            else next(
+                (
+                    item["value"]
+                    for item in valuation_evidence
+                    if item.get("metric") == "total_market_cap"
+                ),
+                None,
+            )
+        ),
         expectations,
     )
     for row in expectation_model.get("market_implied") or []:
@@ -717,9 +830,9 @@ def build_company_evidence(
                 {"source": "execution_cost_model", "status": "ok" if execution_cost_model.get("available") else "unavailable"},
                 {"source": "expectations_model", "status": expectation_model.get("status")},
                 {
-                    "source": "agent_primary_evidence_reach",
+                    "source": "builtin_external_evidence",
                     "status": "recommended" if primary_requests else "not_needed",
-                    "reason": "use host web/search or agent-reach when installed; only original filings may become primary evidence",
+                    "reason": "stock-analysis can search and read bounded public sources; only validated originals become primary evidence",
                 },
             ],
             "primary_evidence_requests": primary_requests,
@@ -748,6 +861,177 @@ def build_company_evidence(
 
     result["_meta"]["evidence_snapshot_id"] = freeze_company_evidence(result)["snapshot_id"]
     return result
+
+
+def enrich_company_evidence_from_web(
+    pack: dict[str, Any],
+    *,
+    mode: str = "standard",
+    lens_ids: tuple[str, ...] | list[str] | None = None,
+    plane: ExternalEvidencePlane | None = None,
+) -> dict[str, Any]:
+    """Collect bounded public documents for explicit Company Evidence gaps."""
+
+    enriched = copy.deepcopy(pack)
+    requests = list((enriched.get("_meta") or {}).get("primary_evidence_requests") or [])
+    lens_requests = _lens_evidence_requests(enriched, tuple(lens_ids or ()))
+    requests.extend(lens_requests)
+    queries = plan_queries(requests, trade_date=str(enriched["trade_date"]), mode=mode)
+    evidence, events = (plane or build_default_plane()).collect(queries, mode=mode)
+    meta = enriched["_meta"]
+    meta["external_documents"] = [
+        {
+            **item.to_internal_dict(),
+            "module": item.module,
+            "evidence_type": item.evidence_type,
+            "document_id": f"doc:{item.content_hash.removeprefix('sha256:')[:20]}",
+            "publication_policy": "discovery_only_until_fact_extracted",
+        }
+        for item in evidence
+        if item.module in enriched["modules"]
+    ]
+    for document in evidence:
+        if document.module not in enriched["modules"]:
+            continue
+        for extracted in document.extracted_facts:
+            row = {
+                **extracted,
+                "source": document.url,
+                "source_type": "external_primary_disclosure",
+                "published_at": document.published_at,
+                "retrieved_at": document.retrieved_at,
+                "content_hash": document.content_hash,
+                "verification": document.verification,
+            }
+            row["evidence_id"] = _evidence_id(document.module, row)
+            enriched["modules"][document.module]["evidence"].append(row)
+            enriched["modules"][document.module]["available"] = True
+    meta["lens_evidence_requests"] = lens_requests
+    meta["source_events"] = [
+        event
+        for event in meta.get("source_events") or []
+        if event.get("source") != "builtin_external_evidence"
+    ]
+    meta["source_events"].extend(events)
+    meta["available_modules"] = [
+        code for code, section in enriched["modules"].items() if section["available"]
+    ]
+    meta["missing_modules"] = [
+        code for code, section in enriched["modules"].items() if not section["available"]
+    ]
+    meta["coverage"] = round(
+        len(meta["available_modules"]) / len(COMPANY_MODULES) * 100,
+        1,
+    )
+    return enriched
+
+
+def enrich_company_peer_comparison(pack: dict[str, Any]) -> dict[str, Any]:
+    """Attach comparable-company facts for Deep reports without polluting core modules."""
+
+    enriched = copy.deepcopy(pack)
+    peer_codes = DEEP_PEER_UNIVERSES.get(str(enriched.get("symbol") or ""), ())
+    rows: list[dict[str, Any]] = []
+    for code in peer_codes:
+        quote_outcome = capture_source(
+            f"peer_quote:{code}",
+            lambda code=code: fetch_single_quote(code, str(enriched["trade_date"])),
+            None,
+        )
+        financial_outcome = capture_source(
+            f"peer_financial:{code}",
+            lambda code=code: fetch_a_share_financial_snapshot(
+                code,
+                str(enriched["trade_date"]),
+            ),
+            {},
+        )
+        quote = quote_outcome.value
+        periods = financial_outcome.value.get("periods") or []
+        latest = _latest_material_period(periods) if periods else {}
+        if quote is None and not latest:
+            continue
+        rows.append(
+            {
+                "symbol": code,
+                "name": quote.name if quote else code,
+                "period": latest.get("period"),
+                "revenue": latest.get("revenue"),
+                "parent_net_profit": latest.get("parent_net_profit"),
+                "roe_weighted": latest.get("roe_weighted"),
+                "pe_ttm": quote.pe if quote else None,
+                "pb": quote.pb if quote else None,
+                "sources": [
+                    quote.source if quote else None,
+                    financial_outcome.value.get("_source"),
+                ],
+            }
+        )
+    enriched["_meta"]["peer_comparison"] = rows
+    enriched["_meta"]["source_events"].extend(
+        {
+            "source": f"peer_comparison:{row['symbol']}",
+            "status": "ok",
+        }
+        for row in rows
+    )
+    return enriched
+
+
+def _lens_evidence_requests(
+    pack: dict[str, Any],
+    lens_ids: tuple[str, ...],
+) -> list[dict[str, Any]]:
+    """Turn explicit expert-framework questions into bounded evidence requests."""
+
+    if not lens_ids:
+        return []
+    lens_ids = resolve_lens_ids(lens_ids)
+    definitions = load_lens_definitions()
+    market = str(pack.get("market") or "")
+    domains = {
+        "a": ["cninfo.com.cn", "sse.com.cn", "szse.cn"],
+        "hk": ["hkexnews.hk"],
+        "us": ["sec.gov"],
+        "jp": ["release.tdnet.info", "edinet-fsa.go.jp"],
+        "kr": ["dart.fss.or.kr", "kind.krx.co.kr"],
+    }.get(market, [])
+    module_by_lens = {
+        "buffett": "C1",
+        "munger": "C5",
+        "duan_yongping": "C1",
+        "zhang_kun": "C4",
+        "graham": "C6",
+        "dalio": "C7",
+        "klarman": "C7",
+        "lynch": "C3",
+        "o_neil": "C7",
+        "wood": "C1",
+        "soros": "C8",
+        "livermore": "C7",
+        "minervini": "C7",
+        "simons": "C7",
+        "feng_liu": "C8",
+    }
+    requests: list[dict[str, Any]] = []
+    for lens_id in lens_ids:
+        definition = definitions.get(lens_id)
+        if not definition:
+            continue
+        questions = [str(item) for item in definition.get("key_questions") or []]
+        requests.append(
+            {
+                "module": module_by_lens[lens_id],
+                "topics": questions,
+                "preferred_domains": domains,
+                "query": (
+                    f"{pack.get('name') or pack.get('symbol')} {pack.get('symbol')} "
+                    f"{questions[0]} 年报 公告"
+                ),
+                "accepted_sources": ["issuer", "exchange", "regulator"],
+            }
+        )
+    return requests
 
 
 def _primary_evidence_requests(

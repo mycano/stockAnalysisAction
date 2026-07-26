@@ -1,4 +1,4 @@
-"""Validate Agent-reached issuer-primary evidence before Company C1-C8 use."""
+"""Validate imported issuer-primary evidence before Company C1-C8 use."""
 
 from __future__ import annotations
 
@@ -61,7 +61,9 @@ def load_reached_primary_evidence(
                 "published_at": published_at,
                 "confidence": "primary",
                 "validation_status": "conditional",
-                "retrieval_method": str(value.get("retrieval_method") or "agent_primary_evidence_reach"),
+                "retrieval_method": str(
+                    value.get("retrieval_method") or "stock_analysis_external_evidence"
+                ),
                 "extraction_note": raw.get("extraction_note"),
                 "evidence_fingerprint": fingerprint,
             }

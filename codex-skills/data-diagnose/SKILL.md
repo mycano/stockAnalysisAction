@@ -4,12 +4,12 @@ description: "检查命令协议、生成入口和运行环境。"
 managed_by: "stock-analysis"
 schema_version: "2.0"
 command_id: "stock-analysis.data-diagnose"
-catalog_hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+catalog_hash: "sha256:d9cb45c6da32283c234898cc2e843baa08bb49c487b4c48fbcf62ed1e879a8ac"
 host_target: "codex-skill"
 x-stock-analysis-managed: true
 x-stock-analysis-schema: "agent-entrypoint/v2"
 x-stock-analysis-command: "data-diagnose"
-x-stock-analysis-catalog-hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+x-stock-analysis-catalog-hash: "sha256:d9cb45c6da32283c234898cc2e843baa08bb49c487b4c48fbcf62ed1e879a8ac"
 operational: true
 ---
 

@@ -25,8 +25,8 @@ deprecated: true
 然后以独立 argv 元素调用：
 
 ```text
-stock-analysis agent route --request <HostRequest JSON>
 stock-analysis agent run --request <HostRequest JSON>
 ```
 
-不得使用 `--input`，不得拼接 Shell 字符串，且必须保留 Router 的阻断、重定向和原因码。
+不得使用 `--input`，不得拼接 Shell 字符串。路由、阻断、重定向、原因码和内部路径均
+保持内部可审计，不得展示给用户；用户只看到自然语言结果与必要的数据边界说明。

@@ -103,6 +103,7 @@ class AgentRouter:
         command_name = _command_name(original)
         if command_name == "analyze":
             arguments["_depth_explicit"] = "depth" in host_request.arguments
+            arguments["_research_mode_explicit"] = "research_mode" in host_request.arguments
         route = _default_route(original)
         reasons = ["HOST_REQUEST_VALID"]
         blocks: list[str] = []
@@ -227,6 +228,46 @@ class AgentRouter:
         blocks: list[str],
     ) -> tuple[str, str | None]:
         _require_asset(args, blocks)
+        research_mode_explicit = bool(args.pop("_research_mode_explicit", False))
+        requested_research_mode = str(args.get("research_mode") or "general").lower()
+        requested_lenses = [
+            str(item).strip()
+            for item in (args.get("lenses") or [])
+            if str(item).strip()
+        ]
+        single_lens = str(args.get("lens") or "").strip()
+        lens_signal = bool(
+            research_mode_explicit and requested_research_mode == "lens"
+            or args.get("lens_mode")
+            or single_lens
+            or requested_lenses
+        )
+        if lens_signal:
+            lens_mode = str(args.get("lens_mode") or "").lower()
+            if not lens_mode:
+                lens_mode = "single" if single_lens or len(requested_lenses) == 1 else "parallel"
+            if lens_mode not in {"single", "parallel", "adversarial", "committee"}:
+                _block(blocks, "INVALID_LENS_MODE")
+            selected_count = len(requested_lenses) + (1 if single_lens and not requested_lenses else 0)
+            if lens_mode == "single" and selected_count != 1:
+                _block(blocks, "SINGLE_LENS_REQUIRES_ONE_FRAMEWORK")
+            if lens_mode == "parallel" and selected_count < 2:
+                _block(blocks, "PARALLEL_LENS_REQUIRES_MULTIPLE_FRAMEWORKS")
+            if lens_mode == "adversarial" and selected_count != 2:
+                _block(blocks, "ADVERSARIAL_LENS_REQUIRES_TWO_FRAMEWORKS")
+            args["research_mode"] = "lens"
+            args["general_mode"] = None
+            args["lens_mode"] = lens_mode
+            if requested_lenses:
+                args["lenses_csv"] = ",".join(requested_lenses)
+            route = "lens"
+            reasons.append("ANALYZE_LENS_EXPLICIT")
+            return route, None
+        if requested_research_mode not in {"general", "lens"}:
+            _block(blocks, "INVALID_RESEARCH_MODE")
+        args["research_mode"] = "general"
+        args["lens_mode"] = None
+        args["lenses"] = []
         requested = str(args.get("depth") or "").lower()
         depth_explicit = bool(args.pop("_depth_explicit", False))
         capabilities = _normalized_values(args.get("capabilities"))
@@ -240,9 +281,11 @@ class AgentRouter:
         if deep_required:
             route = "deep"
             args["depth"] = "deep"
+            args["general_mode"] = "deep"
             reasons.append("ANALYZE_DEEP_CAPABILITY")
         elif requested in {"quick", "standard", "deep"}:
             route = requested
+            args["general_mode"] = requested
             reasons.append(
                 f"ANALYZE_{requested.upper()}_EXPLICIT"
                 if depth_explicit
@@ -253,6 +296,7 @@ class AgentRouter:
         else:
             route = "standard"
             args["depth"] = "standard"
+            args["general_mode"] = "standard"
             reasons.append("ANALYZE_STANDARD_DEFAULT")
         if route == "quick":
             args["quick_market"] = "fund" if args.get("asset_type") == "fund" else "stock-review"
@@ -482,13 +526,22 @@ def _catalog_redirect(
 def _has_explicit_routing_signal(command: str, arguments: Mapping[str, Any]) -> bool:
     """Implement Plan §9 precedence: explicit routing parameters outrank NL signals."""
     fields = {
-        "market": {"market", "scope", "session"},
+        "market": {"market", "scope", "session", "depth"},
         "snapshot": {"asset_type"},
-        "analyze": {"asset_type", "depth", "capabilities"},
-        "earnings": {"mode", "period", "fiscal_period", "comparison_period"},
-        "move": {"window_type", "window", "start_date", "end_date", "event"},
-        "screen": {"mode", "filters", "sort", "confirmed"},
-        "portfolio": {"action", "holdings_status"},
+        "analyze": {
+            "asset_type",
+            "depth",
+            "capabilities",
+            "research_mode",
+            "general_mode",
+            "lens_mode",
+            "lens",
+            "lenses",
+        },
+        "earnings": {"mode", "period", "fiscal_period", "comparison_period", "depth"},
+        "move": {"window_type", "window", "start_date", "end_date", "event", "depth"},
+        "screen": {"mode", "filters", "sort", "confirmed", "depth"},
+        "portfolio": {"action", "holdings_status", "depth"},
         "thesis": {"action", "from_version", "to_version", "reason"},
     }
     return any(field in arguments for field in fields.get(command, set()))

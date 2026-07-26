@@ -14,7 +14,8 @@ from .company_lens import (
     freeze_company_evidence,
     synthesize_company_committee,
 )
-from .research_claims import build_claim_audit_artifacts
+from .research_claims import build_claim_audit_artifacts, build_general_claim_context
+from .research_reports import compose_blocked_report, compose_general_report, compose_lens_report
 from .workspace_store import (
     atomic_write as _atomic_write,
 )
@@ -136,6 +137,34 @@ def _decision_memo(pack: dict[str, Any], committee: dict[str, Any]) -> str:
     lines.extend(f"- 条件：{item}" for item in committee["action_conditions"])
     lines.extend(["- 失效条件：Evidence 快照、来源日期或口径发生变化后，旧 opinions 与 committee 自动失效。", "", DISCLAIMER, ""])
     return "\n".join(lines)
+
+
+def _general_claim_review(pack: dict[str, Any], context: dict[str, Any]) -> str:
+    claims = context.get("publishable_claims") or []
+    unpublished = context.get("unpublished_questions") or []
+    return "\n".join(
+        [
+            f"# General Claim Review：{pack['name']}（{pack['symbol']}）",
+            "",
+            f"- 可发布命题：{len(claims)}",
+            f"- 未发布命题：{len(unpublished)}",
+            f"- 发布状态：{context['publication_status']}",
+            "",
+        ]
+    )
+
+
+def _general_publication_review(pack: dict[str, Any], context: dict[str, Any]) -> str:
+    return "\n".join(
+        [
+            f"# General Publication Review：{pack['name']}（{pack['symbol']}）",
+            "",
+            "- 通用研究未调用任何专家 Lens 或投委会流程。",
+            f"- 最终报告仅消费 {len(context.get('publishable_claims') or [])} 条可发布命题。",
+            "- 未获支持的命题保留在内部审计附件，不进入投资者报告。",
+            "",
+        ]
+    )
 
 
 def _module_lines(pack: dict[str, Any], codes: tuple[str, ...]) -> list[str]:
@@ -521,6 +550,10 @@ def build_research_workspace(
     root: Path | str | None = None,
     lenses: tuple[str, ...] | list[str] | None = None,
     research_question: str | None = None,
+    research_mode: str = "general",
+    general_mode: str = "standard",
+    lens_mode: str | None = None,
+    delivery_budget: str = "full",
 ) -> tuple[dict[str, Any], Path]:
     """Create or resume a dated workspace without overwriting manual edits."""
 
@@ -530,25 +563,45 @@ def build_research_workspace(
     workspace.mkdir(parents=True, exist_ok=True)
     previous_manifest = _load_json(workspace / "workspace.json")
     baseline = _previous_workspace(symbol_dir, str(pack["trade_date"]))
-    changes = _changes(pack, baseline)
     now = datetime.now(timezone.utc).isoformat()
     snapshot = freeze_company_evidence(pack)
-    opinions = build_company_lens_opinions(snapshot, lenses=lenses, research_question=research_question)
-    committee = synthesize_company_committee(snapshot, opinions)
+    if research_mode == "lens":
+        opinions = build_company_lens_opinions(
+            snapshot,
+            lenses=lenses,
+            research_question=research_question,
+            mode=lens_mode or ("single" if lenses and len(lenses) == 1 else "committee"),
+        )
+        committee = synthesize_company_committee(snapshot, opinions)
+    else:
+        committee, opinions = build_general_claim_context(snapshot, asset_type="company")
     audit_artifacts = build_claim_audit_artifacts(snapshot, opinions, committee)
+    if committee["publication_status"] == "block_report":
+        investor_report = compose_blocked_report(
+            pack,
+            (
+                str(issue.get("reason") or "")
+                for issue in (committee.get("safety_gate") or {}).get("issues") or []
+                if issue.get("decision") == "block_report"
+            ),
+        )
+    elif research_mode == "lens":
+        investor_report = compose_lens_report(
+            pack,
+            lens_mode=lens_mode or ("single" if len(opinions) == 1 else "committee"),
+            lenses=tuple(opinions),
+            opinions=opinions,
+            delivery_budget=delivery_budget,
+        )
+    else:
+        investor_report = compose_general_report(pack, scene="company", depth=general_mode)
     evidence_json = json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n"
-    opinions_json = json.dumps(opinions, ensure_ascii=False, indent=2) + "\n"
     committee_json = json.dumps(committee, ensure_ascii=False, indent=2) + "\n"
     contents = {
         "research_plan": ("01-research-plan.md", _research_plan(pack)),
         "company_evidence": ("02-frozen-company-evidence.json", evidence_json),
         "evidence_summary": ("03-evidence-summary.md", _evidence_summary(pack)),
-        "expert_readiness": ("04-company-lens-opinions.md", _expert_readiness(pack, opinions)),
-        "company_opinions": ("04-company-lens-opinions.json", opinions_json),
-        "committee_synthesis": ("05-committee-synthesis.json", committee_json),
-        "committee_review": ("05-committee-review.md", _committee_review(pack, committee)),
-        "decision_memo": ("06-decision-memo.md", _decision_memo(pack, committee)),
-        "institutional_report": ("07-institutional-report.md", _institutional_report(pack, changes, opinions, committee)),
+        "institutional_report": ("07-institutional-report.md", investor_report),
         "evidence_manifest": (
             "evidence_manifest.json",
             json.dumps(audit_artifacts["evidence_manifest"], ensure_ascii=False, indent=2) + "\n",
@@ -566,6 +619,40 @@ def build_research_workspace(
             json.dumps(audit_artifacts["unpublished_claims"], ensure_ascii=False, indent=2) + "\n",
         ),
     }
+    if research_mode == "lens":
+        opinions_json = json.dumps(opinions, ensure_ascii=False, indent=2) + "\n"
+        contents.update(
+            {
+                "expert_readiness": (
+                    "04-company-lens-opinions.md",
+                    _expert_readiness(pack, opinions),
+                ),
+                "company_opinions": ("04-company-lens-opinions.json", opinions_json),
+                "committee_synthesis": ("05-committee-synthesis.json", committee_json),
+                "committee_review": (
+                    "05-committee-review.md",
+                    _committee_review(pack, committee),
+                ),
+                "decision_memo": ("06-decision-memo.md", _decision_memo(pack, committee)),
+            }
+        )
+    else:
+        contents.update(
+            {
+                "claim_review": (
+                    "04-general-claim-review.json",
+                    committee_json,
+                ),
+                "publication_review": (
+                    "05-general-publication-review.md",
+                    _general_publication_review(pack, committee),
+                ),
+                "decision_memo": (
+                    "06-decision-memo.md",
+                    _general_claim_review(pack, committee),
+                ),
+            }
+        )
     previous_artifacts = previous_manifest.get("artifacts") or {}
     artifacts = {
         key: _write_artifact(workspace, filename, content, previous_artifacts.get(key), now)
@@ -578,6 +665,10 @@ def build_research_workspace(
         "name": pack.get("name") or pack["symbol"],
         "market": pack.get("market"),
         "trade_date": pack["trade_date"],
+        "research_mode": research_mode,
+        "general_mode": general_mode if research_mode == "general" else None,
+        "lens_mode": lens_mode if research_mode == "lens" else None,
+        "delivery_budget": delivery_budget,
         "research_question": committee.get("research_question"),
         "committee_members": list(opinions),
         "created_at": previous_manifest.get("created_at") or now,
@@ -592,8 +683,8 @@ def build_research_workspace(
             "research_plan": "complete",
             "evidence_collection": "complete",
             "evidence_validation": "complete",
-            "expert_analysis": "complete",
-            "committee_review": "complete",
+            "expert_analysis": "complete" if research_mode == "lens" else "not_applicable",
+            "committee_review": "complete" if research_mode == "lens" else "not_applicable",
             "report": "complete",
         },
         "baseline": {"trade_date": baseline.get("trade_date"), "path": baseline.get("workspace_path")}
@@ -605,7 +696,7 @@ def build_research_workspace(
             "missing_modules": missing,
             "sha256": snapshot["snapshot_id"].removeprefix("sha256:"),
             "snapshot_id": snapshot["snapshot_id"],
-            "committee_id": committee["committee_id"],
+            "publication_context_id": committee.get("committee_id") or committee["context_id"],
         },
         "artifacts": artifacts,
         "workspace_path": str(workspace),

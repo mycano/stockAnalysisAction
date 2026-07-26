@@ -88,7 +88,7 @@ def test_committee_selection_understands_plain_english_investor_questions():
     assert relevant_research_modules("无法映射的专门问题", asset_type="company") == ()
 
 
-def test_every_selected_lens_consumes_new_business_quality_metrics():
+def test_selected_lenses_consume_framework_specific_business_quality_metrics():
     pack = _pack()
     pack["modules"]["C1"] = {
         "available": True,
@@ -105,12 +105,27 @@ def test_every_selected_lens_consumes_new_business_quality_metrics():
     committee = synthesize_company_committee(snapshot, opinions)
 
     assert len(opinions) == 6
-    for opinion in opinions.values():
-        consumed = {item["metric"] for item in opinion["metric_analyses"]}
-        assert {"parent_net_margin_pct", "operating_cash_conversion_pct"} <= consumed
-        assert all(item["interpretation"] for item in opinion["metric_analyses"])
-    assert committee["evidence_consumption_audit"]["parent_net_margin_pct"] == list(opinions)
-    assert committee["evidence_consumption_audit"]["operating_cash_conversion_pct"] == list(opinions)
+    metric_sets = {
+        lens_id: {item["metric"] for item in opinion["metric_analyses"]}
+        for lens_id, opinion in opinions.items()
+    }
+    assert len({frozenset(metrics) for metrics in metric_sets.values()}) > 1
+    consumers = {
+        lens_id
+        for lens_id, metrics in metric_sets.items()
+        if {"parent_net_margin_pct", "operating_cash_conversion_pct"} <= metrics
+    }
+    assert consumers
+    assert set(committee["evidence_consumption_audit"]["parent_net_margin_pct"]) == consumers
+    assert (
+        set(committee["evidence_consumption_audit"]["operating_cash_conversion_pct"])
+        == consumers
+    )
+    assert all(
+        item["interpretation"]
+        for opinion in opinions.values()
+        for item in opinion["metric_analyses"]
+    )
 
 
 def _add_cash_quality_metrics(pack, *, cash_flow_yoy, receivables_yoy, revenue_yoy):

@@ -114,15 +114,15 @@ const Hook = ({zh}) => {
     <Scene duration={210} label={zh ? '从投资问题开始' : 'start with the investor question'} zh={zh}>
       <div style={{position: 'absolute', left: 150, top: 205, width: 1460}}>
         <div style={rise(frame, fps)}>
-          <Badge tone={C.amber}>{zh ? '正向建模 + 逆向验价' : 'FORWARD MODEL + REVERSE PRICE'}</Badge>
+          <Badge tone={C.amber}>{zh ? '从问题到可行动报告' : 'FROM QUESTION TO ACTIONABLE REPORT'}</Badge>
         </div>
         <div style={{...rise(frame, fps, 10), marginTop: 38, fontSize: 80, lineHeight: 1.08, fontWeight: 600}}>
-          {zh ? '不只预测利润' : 'Do more than forecast earnings'}
+          {zh ? '先验证证据 再形成观点' : 'Verify the evidence first'}
           <br />
-          <span style={{color: C.amber}}>{zh ? '还要解释股价' : 'explain what the price assumes'}</span>
+          <span style={{color: C.amber}}>{zh ? '最后交付行动条件' : 'then deliver action conditions'}</span>
         </div>
         <div style={{...rise(frame, fps, 45), marginTop: 40, fontSize: 30, color: C.muted}}>
-          {zh ? '把真正的投资分歧翻译成可验证指标' : 'Translate the real disagreement into testable operating metrics'}
+          {zh ? '个股 基金 大盘 财报 异动 组合与 15 种专家框架' : 'Stocks. Funds. Markets. Earnings. Moves. Portfolios. 15 expert frameworks.'}
         </div>
       </div>
     </Scene>
@@ -169,19 +169,19 @@ const Brand = ({zh}) => {
   const {fps} = useVideoConfig();
   const p = spring({frame, fps, config: {damping: 18, stiffness: 75}});
   return (
-    <Scene duration={210} label={zh ? '对象 问题与视角' : 'asset question and lens'} zh={zh}>
+    <Scene duration={210} label={zh ? '对象 问题与投资框架' : 'asset question and investment framework'} zh={zh}>
       <div style={{position: 'absolute', inset: 0, display: 'grid', placeItems: 'center'}}>
         <div style={{textAlign: 'center', transform: `scale(${0.92 + p * 0.08})`, opacity: p}}>
-          <div style={{fontSize: 26, color: C.muted, letterSpacing: 6, marginBottom: 28}}>{zh ? '一句话指定对象 问题与视角' : 'NAME THE ASSET QUESTION AND LENS'}</div>
+          <div style={{fontSize: 26, color: C.muted, letterSpacing: 6, marginBottom: 28}}>{zh ? '一句话指定对象 问题与投资框架' : 'NAME THE ASSET QUESTION AND INVESTMENT FRAMEWORK'}</div>
           <div style={{fontSize: 104, fontWeight: 700, letterSpacing: -4}}>
             stock<span style={{color: C.green}}>-analysis</span>
           </div>
-          <div style={{fontSize: 39, marginTop: 25}}>{zh ? '核验事实 建模经营 只发布受支持命题' : 'Verify facts. Model the business. Publish supported claims.'}</div>
+          <div style={{fontSize: 39, marginTop: 25}}>{zh ? '按场景定结构 按证据定内容 按框架做分析' : 'Structure by scene. Content by evidence. Analysis by framework.'}</div>
           <div style={{marginTop: 46, display: 'flex', justifyContent: 'center', gap: 14}}>
             <Badge>{zh ? '全球行情' : 'Global markets'}</Badge>
             <Badge>{zh ? '个股' : 'Stocks'}</Badge>
             <Badge>{zh ? '基金' : 'Funds'}</Badge>
-            <Badge tone={C.lime}>{zh ? '命题级发布门控' : 'Claim-level publication'}</Badge>
+            <Badge tone={C.lime}>{zh ? '投资者交付门控' : 'Investor delivery gate'}</Badge>
           </div>
         </div>
       </div>
@@ -192,18 +192,18 @@ const Brand = ({zh}) => {
 const Terminal = ({zh}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
-  const command = 'scripts/install-agent-entrypoints.sh codex';
+  const command = 'stock-analysis-agent install all';
   const chars = Math.floor(interpolate(frame, [22, 82], [0, command.length], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'}));
   const prompts = zh
     ? [
-        '复盘A股盘前 区分尚未开始 集合竞价与盘中证据',
-        '分析腾讯和苹果 优先核验HKEX SEC与公司IR原文',
-        '比较日韩持仓量价 组合相关性与逐日汇率归因',
+        '/analyze 贵州茅台 600519',
+        '用巴菲特视角深度分析贵州茅台',
+        '用巴菲特和索罗斯对抗分析贵州茅台',
       ]
     : [
-        'Recap A-share premarket and separate not-yet-open auction and intraday evidence',
-        'Research Tencent and Apple with HKEX SEC and issuer originals first',
-        'Compare JP/KR holdings liquidity portfolio correlation and daily FX attribution',
+        '/analyze Kweichow Moutai 600519',
+        'Analyze 600519 through the Buffett framework',
+        'Run an adversarial Buffett vs Soros analysis',
       ];
   return (
     <Scene duration={360} label={zh ? '安装 Skill 后直接提问' : 'install the Skill then ask'} zh={zh}>
@@ -227,7 +227,7 @@ const Terminal = ({zh}) => {
           <div style={{padding: '25px 38px 26px', fontFamily: 'SFMono-Regular, Menlo, monospace', fontSize: 22, lineHeight: 1.65}}>
             <div><span style={{color: C.green}}>$</span> uv tool install stock-analysis</div>
             <div><span style={{color: C.green}}>$</span> {command.slice(0, chars)}<span style={{opacity: frame % 18 < 9 ? 1 : 0}}>▋</span></div>
-            <div style={{...rise(frame, fps, 92), color: C.lime, marginTop: 12}}>✓ {zh ? '已安装 全球市场 · 公司研究 · 一手证据补齐' : 'installed global markets · company research · primary-evidence reach'}</div>
+            <div style={{...rise(frame, fps, 92), color: C.lime, marginTop: 12}}>✓ {zh ? '行情 财务 公告 网页补证均已内置' : 'market data · filings · public web evidence built in'}</div>
           </div>
         </div>
         <div style={{...rise(frame, fps, 122), marginTop: 20, border: `1px solid ${C.line}`, borderRadius: 18, background: C.panel, padding: '20px 28px'}}>
@@ -240,7 +240,7 @@ const Terminal = ({zh}) => {
             ))}
           </div>
           <div style={{...rise(frame, fps, 220), marginTop: 14, color: C.lime, fontSize: 18}}>
-            {zh ? '识别对象 问题与视角 调用对应证据流程' : 'The Agent maps asset question and lens to the matching evidence workflow'}
+            {zh ? '一句话指定标的 问题与投资框架' : 'Name the asset, question, and investment framework in one sentence.'}
           </div>
         </div>
       </div>
@@ -253,8 +253,8 @@ const Evidence = ({zh}) => {
   const {fps} = useVideoConfig();
   const coverage = zh ? ['A股', '港股', '美股', '日股', '韩股', '基金/组合'] : ['A-shares', 'Hong Kong', 'US stocks', 'Japan', 'Korea', 'Funds/portfolios'];
   const evidenceTypes = zh
-    ? ['交易时段与日历', '多源量价', 'SEC与年报一手财务', 'Agent一手证据补齐', '本币成交额与60日波动', '组合相关性与汇率归因', '正逆向估值', '命题发布与审计']
-    : ['Sessions and calendars', 'Multi-source price/volume', 'SEC and annual reports', 'Agent primary-evidence reach', 'Local ADV and 60d volatility', 'Correlation and FX attribution', 'Forward/reverse valuation', 'Claim publication and audit'];
+    ? ['交易时段与日历', '多源量价', 'SEC与年报一手财务', '内置公开网页补证', '来源权威性与时点校验', '总市值等确定性派生', '方法降级与情景估值', '命题发布与内部审计']
+    : ['Sessions and calendars', 'Multi-source price/volume', 'SEC and annual reports', 'Built-in public web evidence', 'Source and time validation', 'Deterministic metric derivation', 'Method downgrade and scenarios', 'Claim publication and private audit'];
   return (
     <Scene duration={330} label={zh ? '数据广度与证据深度' : 'market breadth and evidence depth'} zh={zh}>
       <div style={{position: 'absolute', left: 130, right: 130, top: 115}}>
@@ -303,8 +303,8 @@ const Outputs = ({zh}) => {
   return (
     <Scene duration={300} label={zh ? '15种投资框架' : '15 investment frameworks'} zh={zh}>
       <div style={{position: 'absolute', left: 105, right: 105, top: 115}}>
-        <div style={{fontSize: 52, fontWeight: 600}}>{zh ? '同一批结构化指标 15种投资框架' : 'One structured evidence base. 15 investment frameworks.'}</div>
-        <div style={{fontSize: 24, color: C.muted, marginTop: 14}}>{zh ? '从商业质量到量价趋势 从宏观周期到统计检验' : 'Business quality to price action · Macro regimes to statistical validation'}</div>
+        <div style={{fontSize: 52, fontWeight: 600}}>{zh ? '15套独立研究协议 不是15种写作语气' : '15 research protocols—not 15 writing styles.'}</div>
+        <div style={{fontSize: 24, color: C.muted, marginTop: 14}}>{zh ? '每个框架都有自己的问题 证据方法 估值与报告结构' : 'Each framework owns its questions, evidence, valuation, and report structure'}</div>
         <div style={{display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginTop: 35}}>
           {groups.map(([title, names], i) => (
             <div key={title} style={{...rise(frame, fps, 6 + i * 7), minHeight: 330, padding: 25, borderRadius: 18, border: `1px solid ${i === 3 ? C.green : C.line}`, background: C.panel}}>
@@ -316,9 +316,10 @@ const Outputs = ({zh}) => {
           ))}
         </div>
         <div style={{marginTop: 26, display: 'flex', gap: 16}}>
-          <Badge>{zh ? '单框架深挖' : 'Single-framework depth'}</Badge>
-          <Badge>{zh ? '根据问题动态选择6位' : 'Six selected for each question'}</Badge>
-          <Badge tone={C.lime}>{zh ? '双框架对照' : 'Two-framework comparison'}</Badge>
+          <Badge>{zh ? '单框架' : 'Single'}</Badge>
+          <Badge>{zh ? '多框架并列' : 'Parallel'}</Badge>
+          <Badge tone={C.lime}>{zh ? '双框架对抗' : 'Adversarial'}</Badge>
+          <Badge>{zh ? '明确要求才启用投委会' : 'Committee by request'}</Badge>
         </div>
       </div>
     </Scene>
@@ -330,21 +331,21 @@ const AgentFlow = ({zh}) => {
   const {fps} = useVideoConfig();
   const flows = zh
     ? [
-        ['冻结研究证据', '来源 日期 期间与口径', '全部 lens 读取同一快照'],
-        ['提取结构化命题', '陈述 引证 条件与失效条件', '五种离散支持状态'],
-        ['执行发布门控', '发布 缩窄 阻断动作或报告', '普通缺口不获得方向权重'],
-        ['生成双层输出', '投委会与既有报告骨架', '投资者正文 + 四个审计 JSON'],
+        ['通用研究路径', '个股 基金 大盘 财报 异动 组合 筛选', 'Quick Standard Deep 固定场景结构'],
+        ['专家框架路径', '用户明确指定专家或对抗视角', '完全采用该框架的证据与报告结构'],
+        ['内置联网补证', '优先公告 交易所 公司与监管原文', '找不到则缩窄命题 不猜事实'],
+        ['投资者交付门控', '翻译指标 隐藏路由 证据与日志', '用户只看到报告与简短数据边界'],
       ]
     : [
-        ['Freeze research evidence', 'source date period and scope', 'every lens reads one snapshot'],
-        ['Extract structured claims', 'statement citations conditions invalidators', 'five discrete support states'],
-        ['Apply publication gates', 'publish narrow block action or report', 'ordinary gaps get no directional weight'],
-        ['Render two output layers', 'committee and existing report spine', 'investor Markdown + four audit JSON files'],
+        ['General research path', 'stocks funds markets earnings moves portfolios screens', 'fixed scene contract for Quick Standard Deep'],
+        ['Expert framework path', 'an explicitly requested expert or adversarial view', 'framework-specific evidence and report structure'],
+        ['Built-in web evidence', 'filings exchanges issuers and regulators first', 'narrow unresolved claims never guess facts'],
+        ['Investor delivery gate', 'translate metrics hide routes evidence and logs', 'only the report and a short data boundary'],
       ];
   return (
     <Scene duration={300} label={zh ? '从问题到对应报告' : 'from question to the matching report'} zh={zh}>
       <div style={{position: 'absolute', left: 120, right: 120, top: 125}}>
-        <div style={{fontSize: 52, fontWeight: 600}}>{zh ? '能证明什么就发布什么 其余进入审计层' : 'Publish what the evidence supports. Audit the rest.'}</div>
+        <div style={{fontSize: 52, fontWeight: 600}}>{zh ? '两条研究路径 同一条事实底线' : 'Two research paths. One evidence standard.'}</div>
         <div style={{display: 'grid', gap: 14, marginTop: 38}}>
           {flows.map(([question, evidence, report], i) => {
             const p = spring({frame: frame - i * 18, fps, config: {damping: 18}});
@@ -373,16 +374,16 @@ const Close = ({zh}) => {
       <div style={{position: 'absolute', inset: 0, display: 'grid', placeItems: 'center'}}>
         <div style={{textAlign: 'center', width: 1500}}>
           <div style={{...rise(frame, fps), fontSize: zh ? 64 : 56, lineHeight: 1.15, fontWeight: 650}}>
-            {zh ? '正向回答 公司能赚多少' : 'Forward: what can the business earn?'}<br />
-            {zh ? '逆向回答 股价已经相信多少' : 'Reverse: what does the price already believe?'}<br />
-            <span style={{color: C.green}}>{zh ? '可靠结论 还必须通过命题发布门控' : 'Reliable conclusions must also pass the publication gate.'}</span>
+            {zh ? '输入一个投资问题' : 'Ask one investment question.'}<br />
+            {zh ? '系统完成证据采集 校验 分析与降级' : 'The system collects, validates, analyzes, and degrades safely.'}<br />
+            <span style={{color: C.green}}>{zh ? '你只接收一篇专业研究报告' : 'You receive one professional research report.'}</span>
           </div>
           <div style={{...rise(frame, fps, 14), display: 'inline-flex', marginTop: 42, padding: '21px 30px', border: `1px solid ${C.line}`, borderRadius: 14, background: C.panel, fontFamily: 'SFMono-Regular, Menlo, monospace', fontSize: 25}}>
-            <span style={{color: C.green, marginRight: 17}}>$</span> scripts/install-agent-entrypoints.sh codex
+            <span style={{color: C.green, marginRight: 17}}>$</span> stock-analysis-agent install all
           </div>
           <div style={{...rise(frame, fps, 24), marginTop: 30, fontSize: 26, color: C.muted}}>github.com/AdvancingTitans/stock-analysis</div>
           <div style={{...rise(frame, fps, 34), marginTop: 24, display: 'flex', justifyContent: 'center', gap: 12}}>
-            <Badge>{zh ? 'A/HK/US/JP/KR' : 'A/HK/US/JP/KR'}</Badge><Badge>{zh ? '正逆向估值' : 'Forward + reverse valuation'}</Badge><Badge tone={C.lime}>{zh ? '命题发布与审计' : 'Claim publication + audit'}</Badge>
+            <Badge>{zh ? 'A/HK/US/JP/KR' : 'A/HK/US/JP/KR'}</Badge><Badge>{zh ? '内置联网补证' : 'Built-in web evidence'}</Badge><Badge tone={C.lime}>{zh ? '投资者报告交付' : 'Investor report delivery'}</Badge>
           </div>
         </div>
       </div>
@@ -415,10 +416,10 @@ export const SocialPreview = () => (
         stock<span style={{color: C.green}}>-analysis</span>
       </div>
       <div style={{fontSize: 34, lineHeight: 1.2, marginTop: 22}}>
-        Evidence-first investment research<br />for agents and humans.
+        Investor-ready research<br />grounded in public evidence.
       </div>
       <div style={{fontSize: 20, lineHeight: 1.5, color: C.muted, marginTop: 28}}>
-        Global stocks · funds · portfolios<br />Forward/reverse valuation · supported-claim publication
+        Global stocks · funds · markets · portfolios<br />Built-in public evidence · 15 expert frameworks
       </div>
       <div style={{display: 'flex', gap: 12, marginTop: 30}}>
         <Badge>A/HK/US/JP/KR</Badge>
@@ -428,9 +429,9 @@ export const SocialPreview = () => (
     <div style={{position: 'absolute', left: 735, top: 70, width: 475}}>
       <div style={{fontSize: 17, color: C.muted, letterSpacing: 2}}>RESEARCH COMPILER</div>
       {[
-        ['01', 'Freeze evidence', 'source · date · period · scope'],
-        ['02', 'Compile claims', 'citations · conditions · invalidators'],
-        ['03', 'Apply publication gates', 'publish · narrow · block action/report'],
+        ['01', 'Choose the research contract', 'scene depth or explicit expert framework'],
+        ['02', 'Collect and validate evidence', 'structured sources plus built-in public web reach'],
+        ['03', 'Build the investment view', 'valuation · risks · catalysts · action conditions'],
       ].map(([index, title, detail], i) => (
         <div key={title} style={{marginTop: i === 0 ? 22 : 12, padding: '20px 22px', borderRadius: 14, border: `1px solid ${i === 2 ? C.green : C.line}`, background: `${C.panel}F0`}}>
           <div style={{display: 'flex', alignItems: 'center', gap: 16}}>
@@ -442,12 +443,12 @@ export const SocialPreview = () => (
       ))}
       <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 16}}>
         <div style={{padding: '18px 20px', borderRadius: 14, border: `1px solid ${C.amber}88`, background: C.panel}}>
-          <div style={{fontSize: 14, color: C.amber, letterSpacing: 1.4}}>PUBLISH</div>
-          <div style={{fontSize: 21, fontWeight: 600, marginTop: 9}}>Investor report</div>
+          <div style={{fontSize: 14, color: C.amber, letterSpacing: 1.4}}>RESEARCH</div>
+          <div style={{fontSize: 21, fontWeight: 600, marginTop: 9}}>Evidence first</div>
         </div>
-        <div style={{padding: '18px 20px', borderRadius: 14, border: `1px solid ${C.line}`, background: C.panel}}>
-          <div style={{fontSize: 14, color: C.green, letterSpacing: 1.4}}>AUDIT</div>
-          <div style={{fontSize: 21, fontWeight: 600, marginTop: 9}}>Four JSON artifacts</div>
+        <div style={{padding: '18px 20px', borderRadius: 14, border: `1px solid ${C.green}88`, background: C.panel}}>
+          <div style={{fontSize: 14, color: C.green, letterSpacing: 1.4}}>DELIVERY</div>
+          <div style={{fontSize: 21, fontWeight: 600, marginTop: 9}}>Actionable report</div>
         </div>
       </div>
     </div>

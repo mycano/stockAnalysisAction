@@ -266,9 +266,6 @@ def _artifacts(
             root / "codex-skills" / (_safe_stem(entrypoint_id) if metadata[2] else entrypoint_id)
             for entrypoint_id, metadata in sorted(entrypoints.items())
         ]
-        auxiliary = root / "codex-skills" / "primary-evidence-reach"
-        if auxiliary.is_dir():
-            skill_sources.append(auxiliary)
         for source in skill_sources:
             result["codex"].append(
                 Artifact("codex", source, Path("skills") / _safe_stem(source.name), "directory")

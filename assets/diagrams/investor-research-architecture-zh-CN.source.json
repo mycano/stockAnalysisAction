@@ -7,45 +7,45 @@
   "quality_profile": "showcase",
   "width": 960,
   "height": 700,
-  "title": "一个问题，一条可审计研究路径",
-  "subtitle": "结构化请求 · 确定性路由 · 校验证据 · 保留每一条边界",
+  "title": "从投资问题到可行动的研究报告",
+  "subtitle": "个股 · 基金 · 市场 · 内置证据 · 金融模型 · 15 种专家框架",
   "containers": [
-    { "id": "mission", "x": 40, "y": 110, "width": 880, "height": 110, "label": "提问与结构化", "stroke": "rgba(255,255,255,0.20)", "fill": "rgba(255,255,255,0.05)" },
-    { "id": "specialists", "x": 40, "y": 270, "width": 880, "height": 140, "label": "确定性证据工作流", "stroke": "rgba(255,255,255,0.20)", "fill": "rgba(255,255,255,0.05)" },
+    { "id": "mission", "x": 40, "y": 110, "width": 880, "height": 110, "label": "投资者意图", "stroke": "rgba(255,255,255,0.20)", "fill": "rgba(255,255,255,0.05)" },
+    { "id": "specialists", "x": 40, "y": 270, "width": 880, "height": 140, "label": "研究引擎", "stroke": "rgba(255,255,255,0.20)", "fill": "rgba(255,255,255,0.05)" },
     { "id": "delivery", "x": 40, "y": 450, "width": 880, "height": 140, "label": "投资交付", "stroke": "rgba(255,255,255,0.20)", "fill": "rgba(255,255,255,0.05)" }
   ],
   "nodes": [
-    { "id": "request", "kind": "speech", "x": 60, "y": 146, "width": 160, "height": 54, "label": "投资问题", "sublabel": "标的 · 日期 · 关注点", "fill": "rgba(255,255,255,0.12)", "stroke": "rgba(255,255,255,0.35)", "flat": true },
-    { "id": "coordinator", "kind": "double_rect", "x": 390, "y": 146, "width": 200, "height": 54, "type_label": "宿主 · 八命令", "label": "HostRequest", "fill": "rgba(255,255,255,0.12)", "stroke": "#c084fc" },
-    { "id": "research", "kind": "rect", "x": 80, "y": 330, "width": 180, "height": 60, "type_label": "路由器", "label": "ResolvedRequest", "fill": "rgba(255,255,255,0.12)", "stroke": "#60a5fa" },
-    { "id": "coding", "kind": "rect", "x": 390, "y": 330, "width": 200, "height": 60, "type_label": "工作流", "label": "校验证据", "fill": "rgba(255,255,255,0.12)", "stroke": "#f59e0b" },
-    { "id": "review", "kind": "rect", "x": 700, "y": 330, "width": 180, "height": 60, "type_label": "边界", "label": "保留证据缺口", "fill": "rgba(255,255,255,0.12)", "stroke": "#34d399" },
-    { "id": "memory", "kind": "cylinder", "x": 80, "y": 510, "width": 180, "height": 60, "label": "研究历史", "sublabel": "工作区 · 投资论点", "fill": "rgba(255,255,255,0.08)", "stroke": "#34d399" },
-    { "id": "synthesis", "kind": "double_rect", "x": 390, "y": 510, "width": 200, "height": 60, "type_label": "输出门控", "label": "校验结论边界", "fill": "rgba(255,255,255,0.12)", "stroke": "#c084fc" },
-    { "id": "response", "kind": "speech", "x": 700, "y": 510, "width": 180, "height": 60, "label": "备忘录 + 审计", "sublabel": "风险 · 失效条件", "fill": "rgba(255,255,255,0.12)", "stroke": "#f59e0b", "flat": true }
+    { "id": "request", "kind": "speech", "x": 60, "y": 146, "width": 160, "height": 54, "label": "投资问题", "sublabel": "标的 · 周期 · 关注点", "fill": "rgba(255,255,255,0.12)", "stroke": "rgba(255,255,255,0.35)", "flat": true },
+    { "id": "coordinator", "kind": "double_rect", "x": 390, "y": 146, "width": 200, "height": 54, "label": "场景与框架", "sublabel": "个股 · 基金 · 市场", "fill": "rgba(255,255,255,0.12)", "stroke": "#c084fc" },
+    { "id": "research", "kind": "rect", "x": 80, "y": 330, "width": 180, "height": 60, "type_label": "场景", "label": "研究问题", "sublabel": "个股 · 基金 · 市场", "fill": "rgba(255,255,255,0.12)", "stroke": "#60a5fa" },
+    { "id": "coding", "kind": "rect", "x": 390, "y": 330, "width": 200, "height": 60, "type_label": "内置能力", "label": "已验证证据", "sublabel": "结构化数据 · 公告 · 网页", "fill": "rgba(255,255,255,0.12)", "stroke": "#f59e0b" },
+    { "id": "review", "kind": "rect", "x": 700, "y": 330, "width": 180, "height": 60, "type_label": "分析", "label": "框架、模型与风险", "sublabel": "15 种框架 · 情景", "fill": "rgba(255,255,255,0.12)", "stroke": "#34d399" },
+    { "id": "memory", "kind": "rect", "x": 80, "y": 510, "width": 180, "height": 60, "label": "证据覆盖", "sublabel": "事实 · 缺口 · 时点", "fill": "rgba(255,255,255,0.08)", "stroke": "#34d399", "flat": true },
+    { "id": "synthesis", "kind": "double_rect", "x": 390, "y": 510, "width": 200, "height": 60, "type_label": "决策支持", "label": "证据支持的观点", "sublabel": "估值 · 风险 · 条件", "fill": "rgba(255,255,255,0.12)", "stroke": "#c084fc" },
+    { "id": "response", "kind": "speech", "x": 700, "y": 510, "width": 180, "height": 60, "label": "投资研究报告", "sublabel": "观点 · 估值 · 条件", "fill": "rgba(255,255,255,0.12)", "stroke": "#f59e0b", "flat": true }
   ],
   "arrows": [
-    { "id": "brief", "source": "request", "target": "coordinator", "source_port": "right", "target_port": "left", "flow": "read", "motion_role": "ingress", "motion_stage": 1, "motion_order": 0, "label": "结构化" },
-    { "id": "a-delegate-research", "source": "coordinator", "target": "research", "source_port": "bottom", "target_port": "top", "flow": "control", "motion_role": "delegate", "motion_stage": 2, "motion_order": 0, "label": "路由" },
-    { "id": "b-delegate-coding", "source": "coordinator", "target": "coding", "source_port": "bottom", "target_port": "top", "flow": "control", "motion_role": "delegate", "motion_stage": 2, "motion_order": 1, "label": "执行" },
-    { "id": "c-delegate-review", "source": "coordinator", "target": "review", "source_port": "bottom", "target_port": "top", "flow": "control", "motion_role": "delegate", "motion_stage": 2, "motion_order": 2, "label": "约束" },
-    { "id": "research-write", "source": "research", "target": "memory", "source_port": "bottom", "target_port": "top", "flow": "write", "motion_role": "evidence", "motion_stage": 3, "motion_order": 0, "label": "记录" },
-    { "id": "memory-merge", "source": "memory", "target": "synthesis", "source_port": "right", "target_port": "left", "flow": "read", "motion_role": "context", "motion_stage": 4, "motion_order": 0, "label": "历史" },
-    { "id": "coding-merge", "source": "coding", "target": "synthesis", "source_port": "bottom", "target_port": "top", "flow": "write", "motion_role": "artifact", "motion_stage": 3, "motion_order": 1, "label": "证据" },
-    { "id": "review-output", "source": "review", "target": "response", "source_port": "bottom", "target_port": "top", "flow": "feedback", "motion_role": "approval", "motion_stage": 5, "motion_order": 1, "label": "缺口" },
-    { "id": "deliver", "source": "synthesis", "target": "response", "source_port": "right", "target_port": "left", "flow": "feedback", "motion_role": "deliver", "motion_stage": 5, "motion_order": 0, "label": "交付" }
+    { "id": "brief", "source": "request", "target": "coordinator", "source_port": "right", "target_port": "left", "flow": "read", "motion_role": "ingress", "motion_stage": 1, "motion_order": 0, "label": "提问" },
+    { "id": "a-delegate-research", "source": "coordinator", "target": "research", "source_port": "bottom", "target_port": "top", "flow": "control", "motion_role": "delegate", "motion_stage": 2, "motion_order": 0, "label": "研究问题" },
+    { "id": "b-delegate-coding", "source": "coordinator", "target": "coding", "source_port": "bottom", "target_port": "top", "flow": "control", "motion_role": "delegate", "motion_stage": 2, "motion_order": 1, "label": "证据" },
+    { "id": "c-delegate-review", "source": "coordinator", "target": "review", "source_port": "bottom", "target_port": "top", "flow": "control", "motion_role": "delegate", "motion_stage": 2, "motion_order": 2, "label": "分析" },
+    { "id": "research-write", "source": "research", "target": "memory", "source_port": "bottom", "target_port": "top", "flow": "write", "motion_role": "evidence", "motion_stage": 3, "motion_order": 0, "label": "所需证据" },
+    { "id": "memory-merge", "source": "memory", "target": "synthesis", "source_port": "right", "target_port": "left", "flow": "read", "motion_role": "context", "motion_stage": 4, "motion_order": 0, "label": "覆盖" },
+    { "id": "coding-merge", "source": "coding", "target": "synthesis", "source_port": "bottom", "target_port": "top", "flow": "write", "motion_role": "artifact", "motion_stage": 3, "motion_order": 1, "label": "事实" },
+    { "id": "review-output", "source": "review", "target": "response", "source_port": "bottom", "target_port": "top", "flow": "feedback", "motion_role": "approval", "motion_stage": 5, "motion_order": 1, "label": "风险复核" },
+    { "id": "deliver", "source": "synthesis", "target": "response", "source_port": "right", "target_port": "left", "flow": "feedback", "motion_role": "deliver", "motion_stage": 5, "motion_order": 0, "label": "发布" }
   ],
   "legend_orientation": "horizontal",
   "legend_x": 48,
   "legend_y": 625,
   "legend_locked": true,
   "legend": [
-    { "flow": "read", "label": "请求与历史" },
-    { "flow": "control", "label": "确定性路由" },
-    { "flow": "write", "label": "证据产物" },
-    { "flow": "feedback", "label": "有边界的输出" }
+    { "flow": "read", "label": "问题与支持" },
+    { "flow": "control", "label": "研究规划" },
+    { "flow": "write", "label": "已验证证据" },
+    { "flow": "feedback", "label": "投资者交付" }
   ],
-  "footer": "缺失保持缺失 · 同一请求走同一路径 · 不自动交易",
+  "footer": "一个系统完成证据采集、金融分析、专家框架与投资者报告",
   "footer_x": 48,
   "footer_y": 680
 }

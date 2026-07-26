@@ -74,7 +74,7 @@ def test_amount_without_buy_price_is_incomplete_user_holding():
     assert "quantity" in error.value.missing_by_symbol["600519"]
 
 
-def test_plan_trading_task_defaults_to_committee_and_session_format(monkeypatch):
+def test_plan_trading_task_defaults_to_general_and_session_format(monkeypatch):
     monkeypatch.setattr("stock_analysis.trading.load_holdings_from_profile", lambda: [])
 
     plan = plan_trading_task(
@@ -89,7 +89,7 @@ def test_plan_trading_task_defaults_to_committee_and_session_format(monkeypatch)
 
     assert plan.market == "a"
     assert plan.report_format == "summary"
-    assert plan.mode == "committee"
+    assert plan.mode == "general"
     assert plan.include_holdings is False
 
 

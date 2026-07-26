@@ -364,10 +364,9 @@ def test_missing_company_valuation_inputs_block_action_not_report():
     gate = evaluate_safety_gate(evidence, [_claim().to_dict()], asset_type="company")
 
     assert gate["decision"] == PublicationDecision.BLOCK_ACTION.value
-    assert {issue["code"] for issue in gate["issues"]} >= {
-        "PRICE_UNAVAILABLE",
-        "MARKET_CAP_UNAVAILABLE",
-    }
+    assert {issue["code"] for issue in gate["issues"]} >= {"PRICE_UNAVAILABLE"}
+    assert gate["capabilities"]["absolute_valuation"] is False
+    assert gate["capabilities"]["research_view"] is True
 
 
 def test_claim_level_blocks_action_propagates_to_the_report_gate():
@@ -441,7 +440,9 @@ def test_claim_level_blocks_report_propagates_separately_from_publishable_claims
         ("total_market_cap", 1_800_000_000_000, "expired"),
     ],
 )
-def test_invalid_or_expired_company_price_basis_blocks_action(metric, value, validation_status):
+def test_invalid_or_expired_company_price_basis_degrades_only_dependent_capability(
+    metric, value, validation_status
+):
     defaults = {
         "market_quote": {"value": 1500, "period": "20260710", "validation_status": "accepted"},
         "total_market_cap": {"value": 1_800_000_000_000, "period": "20260710", "validation_status": "accepted"},
@@ -465,7 +466,13 @@ def test_invalid_or_expired_company_price_basis_blocks_action(metric, value, val
 
     gate = evaluate_safety_gate(evidence, [_claim().to_dict()], asset_type="company")
 
-    assert gate["decision"] == PublicationDecision.BLOCK_ACTION.value
+    if metric == "market_quote":
+        assert gate["decision"] == PublicationDecision.BLOCK_ACTION.value
+        assert any(issue["code"] == "PRICE_UNAVAILABLE" for issue in gate["issues"])
+    else:
+        assert gate["decision"] == PublicationDecision.PUBLISH.value
+        assert gate["capabilities"]["absolute_valuation"] is False
+        assert gate["capabilities"]["personalized_action"] is False
 
 
 def test_current_positive_company_valuation_basis_does_not_block_action():

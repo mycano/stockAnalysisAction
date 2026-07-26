@@ -70,13 +70,14 @@ def test_fund_workspace_uses_institutional_skeleton(tmp_path):
 
     report = (workspace / manifest["artifacts"]["institutional_report"]["path"]).read_text(encoding="utf-8")
     for heading in (
-        "## 一、执行摘要",
-        "## 二、产品定位与指数契约",
-        "## 三、持仓结构与产业暴露",
-        "## 四、业绩、趋势与风险",
-        "## 五、估值、折溢价与交易实现",
-        "## 六、投委会审议",
-        "## 八、投委会结论与条件化动作",
+        "## 结论与组合角色",
+        "## 产品与策略",
+        "## 收益来源",
+        "## 风险特征",
+        "## 持仓与暴露",
+        "## 管理能力或跟踪质量",
+        "## 当前市场适配度",
+        "## 申购、持有与退出条件",
     ):
         assert heading in report
     assert "证据不足，维持观察" not in report
@@ -97,7 +98,7 @@ def test_fund_workspace_uses_institutional_skeleton(tmp_path):
         assert json.loads((workspace / filename).read_text(encoding="utf-8"))
 
 
-def test_research_cli_routes_fund_asset_type(monkeypatch, tmp_path, capsys):
+def test_research_cli_routes_fund_asset_type_without_workspace_path(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(app, "build_fund_evidence", lambda *_: _pack())
 
     assert app.run([
@@ -105,12 +106,14 @@ def test_research_cli_routes_fund_asset_type(monkeypatch, tmp_path, capsys):
         "--asset-type", "fund", "--workspace-dir", str(tmp_path),
     ]) == 0
 
-    output = capsys.readouterr().out
-    assert "基金深度研究报告 · 投委会" in output
-    assert f"Research Workspace: {tmp_path / '512480' / '20260717'}" in output
+    captured = capsys.readouterr()
+    output = captured.out
+    assert "基金研究报告" in output
+    assert "Research Workspace:" not in output
+    assert "STOCK_ANALYSIS_WORKSPACE=" not in captured.err
 
 
-def test_every_selected_fund_expert_consumes_valuation_and_risk_metrics():
+def test_selected_fund_experts_consume_only_their_required_modules():
     pack = _pack()
     pack["modules"]["F5"] = {
         "available": True,
@@ -134,16 +137,17 @@ def test_every_selected_fund_expert_consumes_valuation_and_risk_metrics():
     committee, opinions = synthesize_fund_committee(snapshot, research_question="估值、景气和交易风险")
 
     assert len(opinions) == 6
-    required = {
-        "positive_pe_harmonic_proxy",
-        "index_pe_calculation_share",
-        "max_drawdown_60d_pct",
-        "annualized_volatility_60d_pct",
-        "index_single_constituent_cap_pct",
-        "management_fee_pct",
+    metric_sets = {
+        lens_id: {item["metric"] for item in opinion["metric_analyses"]}
+        for lens_id, opinion in opinions.items()
     }
-    assert all(required <= {item["metric"] for item in opinion["metric_analyses"]} for opinion in opinions.values())
-    assert all(committee["evidence_consumption_audit"][metric] == list(opinions) for metric in required)
+    assert len({frozenset(metrics) for metrics in metric_sets.values()}) > 1
+    for lens_id, opinion in opinions.items():
+        allowed_modules = set(opinion["required_modules"])
+        assert {
+            item["module"] for item in opinion["metric_analyses"]
+        } <= allowed_modules, lens_id
+    assert committee["evidence_consumption_audit"]
 
 
 def test_official_fund_contract_and_index_methodology_are_structured():
@@ -172,7 +176,12 @@ def test_simons_reservation_reconciles_with_index_history_and_execution_cost_evi
         {"evidence_id": "F7:cost", "metric": "execution_round_trip_cost_1m_bps", "value": 8.2, "validation_status": "conditional"},
     ]
     manifest, workspace = build_fund_research_workspace(
-        pack, root=tmp_path, research_question="量化、指数趋势、交易成本和回撤"
+        pack,
+        root=tmp_path,
+        research_question="量化、指数趋势、交易成本和回撤",
+        research_mode="lens",
+        lens_mode="single",
+        lenses=("simons",),
     )
     report = (workspace / manifest["artifacts"]["institutional_report"]["path"]).read_text(encoding="utf-8")
     ledger = json.loads((workspace / "claim_ledger.json").read_text(encoding="utf-8"))
@@ -183,7 +192,8 @@ def test_simons_reservation_reconciles_with_index_history_and_execution_cost_evi
     }
 
     assert "缺少标的指数日线与完整交易成本模型" not in report
-    assert "index_history_sample_size为90" in report
+    assert "指数历史样本数（20260717）为 90" in report
+    assert "index_history_sample_size" not in report
     assert {"F6:index-sample", "F6:index-vol"} <= published_ids
     assert "F5:index-pe" not in published_ids
     assert "F7:cost" not in published_ids

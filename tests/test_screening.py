@@ -48,7 +48,7 @@ def test_screen_uses_strict_and_filters_and_keeps_outside_universe_unknown():
     assert result["decisions"][0]["status"] == "PASS"
     assert result["decisions"][1]["status"] == "UNKNOWN"
     assert result["quality"]["whole_market_eligible"] is True
-    assert "条件命中股票" in render_markdown(result)
+    assert "A股条件筛选报告" in render_markdown(result)
 
 
 def test_screen_treats_equal_value_as_fail_and_missing_as_unknown():

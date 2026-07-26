@@ -87,7 +87,7 @@ def test_screen_cli_writes_one_evidence_file(monkeypatch, tmp_path, capsys):
         "--filter", "roe_weighted:gt:8", "--sort", "roe_weighted:desc", "--emit-evidence",
     ]) == 0
 
-    assert "条件命中股票" in capsys.readouterr().out
+    assert "A股条件筛选报告" in capsys.readouterr().out
     evidence = list(tmp_path.glob("screen_evidence_*.json"))
     assert len(evidence) == 1
 

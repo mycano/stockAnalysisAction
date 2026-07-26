@@ -151,11 +151,13 @@ def test_company_workflow_reports_do_not_turn_gaps_into_scores(monkeypatch):
     earnings = render_earnings_review(pack)
     price_move = render_price_move(pack)
 
-    assert "证据不足，维持观察" in stock
-    assert "C4 护城河证据" in stock
-    assert "毛利率仅为护城河代理" in stock
-    assert "roe_weighted" in earnings
-    assert "不将事件断言为异动主因" in price_move
+    assert "## 一句话结论" in stock
+    assert "Evidence Coverage" not in stock
+    assert "C4 护城河证据" not in stock
+    assert "## 业绩摘要" in earnings
+    assert "roe_weighted" not in earnings
+    assert "## 已确认原因" in price_move
+    assert "相关性不自动升级为因果" in price_move
 
 
 def test_thesis_create_and_review_persist_only_structured_evidence(monkeypatch, tmp_path):
@@ -171,7 +173,7 @@ def test_thesis_create_and_review_persist_only_structured_evidence(monkeypatch, 
     assert reviewed is not None
     assert thesis["version"] == 1
     assert reviewed["version"] == 2
-    assert "未发现可由当前结构化 Evidence 自动判定的变化" in changes
+    assert "未发现可由当前结构化证据自动判定的变化" in changes
     assert json.loads(path.read_text(encoding="utf-8"))["symbol"] == "600519"
     assert thesis_version_path("600519", 1).exists()
     assert thesis_version_path("600519", 2).exists()
@@ -219,7 +221,7 @@ def test_cli_stock_review_emits_company_evidence(monkeypatch, tmp_path, capsys):
 
     assert app.run(["--market", "stock-review", "--symbol", "600519", "--date", "20260710", "--emit-evidence"]) == 0
 
-    assert "公司研究" in capsys.readouterr().out
+    assert "个股研究报告" in capsys.readouterr().out
     assert (tmp_path / "company_evidence_600519_20260710.json").exists()
 
 
@@ -249,4 +251,4 @@ def test_cli_passes_expectations_file_to_company_research(monkeypatch, tmp_path,
     ]) == 0
 
     assert captured["expectations"] == assumptions
-    assert "公司研究" in capsys.readouterr().out
+    assert "个股研究报告" in capsys.readouterr().out

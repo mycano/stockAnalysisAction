@@ -5,6 +5,7 @@ import pytest
 
 from stock_analysis import app
 from stock_analysis.agent.catalog import load_catalog
+from stock_analysis.agent.cli import run_agent
 from stock_analysis.agent.models import HostRequest
 from stock_analysis.agent.router import AgentRouter, RequestError, parse_debug_input
 from stock_analysis.agent.runtime import WorkflowResult, execute_workflow
@@ -175,6 +176,56 @@ def test_analyze_defaults_to_standard_and_deep_capability_wins():
     assert "ANALYZE_DEEP_CAPABILITY" in deep.reason_codes
 
 
+def test_explicit_lens_is_independent_from_general_depth():
+    router = AgentRouter()
+
+    resolved = router.resolve(
+        request(
+            "analyze",
+            asset="600519",
+            depth="quick",
+            research_mode="lens",
+            lens_mode="single",
+            lens="buffett",
+        )
+    )
+
+    assert resolved.route == "lens"
+    assert resolved.arguments["research_mode"] == "lens"
+    assert resolved.arguments["general_mode"] is None
+    assert resolved.arguments["lens_mode"] == "single"
+    assert "--depth" not in resolved.argv
+    assert resolved.argv[resolved.argv.index("--lens") + 1] == "buffett"
+
+
+def test_adversarial_lens_requires_exactly_two_frameworks():
+    router = AgentRouter()
+
+    valid = router.resolve(
+        request(
+            "analyze",
+            asset="600519",
+            research_mode="lens",
+            lens_mode="adversarial",
+            lenses=["buffett", "soros"],
+        )
+    )
+    invalid = router.resolve(
+        request(
+            "analyze",
+            asset="600519",
+            research_mode="lens",
+            lens_mode="adversarial",
+            lenses=["buffett"],
+        )
+    )
+
+    assert not valid.blocked
+    assert valid.argv[valid.argv.index("--lenses") + 1] == "buffett,soros"
+    assert invalid.blocked
+    assert "ADVERSARIAL_LENS_REQUIRES_TWO_FRAMEWORKS" in invalid.block_reasons
+
+
 @pytest.mark.parametrize(
     ("command", "arguments", "target"),
     [
@@ -267,13 +318,15 @@ def test_explicit_analyze_depth_precedes_natural_language_signal(catalog_path):
     assert "ANALYZE_DEEP_EXPLICIT" in resolved.reason_codes
 
 
-def test_quick_fund_analysis_uses_fund_evidence_path():
+def test_quick_fund_analysis_uses_fund_research_report_path():
     resolved = AgentRouter().resolve(
         request("analyze", asset="512480", asset_type="fund", depth="quick")
     )
 
     assert resolved.route == "quick"
-    assert resolved.argv[2:4] == ["fund", "--symbol"]
+    assert resolved.argv[2:4] == ["research", "--symbol"]
+    assert resolved.argv[resolved.argv.index("--asset-type") + 1] == "fund"
+    assert resolved.argv[resolved.argv.index("--depth") + 1] == "quick"
 
 
 @pytest.mark.parametrize("status", ["partial", "stale", "missing"])
@@ -434,6 +487,65 @@ def test_app_dispatches_agent_route_with_structured_request(catalog_path, capsys
     output = json.loads(capsys.readouterr().out)
     assert output["route"] == "standard"
     assert output["argv"][-1] == "600519"
+
+
+def test_agent_run_hides_internal_stderr_and_manifest_path(monkeypatch, tmp_path, capsys):
+    payload = json.dumps(
+        {
+            "schema_version": "2.0",
+            "command": "snapshot",
+            "arguments": {"asset": "600519"},
+        }
+    )
+    monkeypatch.setattr(
+        "stock_analysis.agent.cli.execute_workflow",
+        lambda *args, **kwargs: (
+            WorkflowResult(0, "# 个股速览\n\n研究结果。\n", "STOCK_ANALYSIS_WORKSPACE=/tmp/internal"),
+            {"status": "completed"},
+        ),
+    )
+
+    assert run_agent([
+        "run",
+        "--request",
+        payload,
+        "--manifest",
+        str(tmp_path / "manifest.json"),
+    ]) == 0
+
+    captured = capsys.readouterr()
+    assert "个股速览" in captured.out
+    assert "STOCK_ANALYSIS_WORKSPACE" not in captured.out
+    assert captured.err == ""
+
+
+def test_agent_run_refuses_engineering_payload(monkeypatch, tmp_path, capsys):
+    payload = json.dumps(
+        {
+            "schema_version": "2.0",
+            "command": "snapshot",
+            "arguments": {"asset": "600519"},
+        }
+    )
+    monkeypatch.setattr(
+        "stock_analysis.agent.cli.execute_workflow",
+        lambda *args, **kwargs: (
+            WorkflowResult(0, "RouteDecision 已通过", ""),
+            {"status": "completed"},
+        ),
+    )
+
+    assert run_agent([
+        "run",
+        "--request",
+        payload,
+        "--manifest",
+        str(tmp_path / "manifest.json"),
+    ]) == 1
+
+    output = capsys.readouterr().out
+    assert "RouteDecision" not in output
+    assert "不会向用户展示工程数据" in output
 
 
 def test_catalog_loader_rejects_duplicate_command_ids(tmp_path):

@@ -1,0 +1,281 @@
+{
+  "schema_version": "report-contract/v1",
+  "contracts": {
+    "company.quick": {
+      "scene": "company",
+      "depth": "quick",
+      "sections": [
+        ["conclusion", "一句话结论"],
+        ["change", "近期最重要的变化"],
+        ["business", "公司靠什么赚钱"],
+        ["quality", "当前经营质量"],
+        ["valuation", "估值与价格位置"],
+        ["risks", "核心风险"],
+        ["watchlist", "观察条件"]
+      ]
+    },
+    "company.standard": {
+      "scene": "company",
+      "depth": "standard",
+      "sections": [
+        ["conclusion", "投资结论"],
+        ["business", "公司与商业模式"],
+        ["thesis", "核心投资逻辑"],
+        ["competition", "行业与竞争格局"],
+        ["financials", "经营与财务质量"],
+        ["valuation", "估值"],
+        ["catalysts", "催化剂"],
+        ["risks", "主要风险"],
+        ["actions", "行动与观察框架"]
+      ]
+    },
+    "company.deep": {
+      "scene": "company",
+      "depth": "deep",
+      "sections": [
+        ["conclusion", "投资结论"],
+        ["business", "商业模式与竞争优势"],
+        ["controversies", "核心争议"],
+        ["history", "历史阶段比较"],
+        ["peers", "同业比较"],
+        ["financials", "经营与财务质量"],
+        ["valuation", "多模型估值"],
+        ["scenarios", "三情景分析"],
+        ["counter_case", "反方审查"],
+        ["catalysts", "催化剂"],
+        ["risks", "主要风险"],
+        ["position", "仓位与观察框架"]
+      ]
+    },
+    "fund.quick": {
+      "scene": "fund",
+      "depth": "quick",
+      "sections": [
+        ["identity", "基金是什么"],
+        ["holdings", "主要持有什么"],
+        ["fit", "当前市场适配度"],
+        ["performance", "收益和回撤特征"],
+        ["costs", "费用、流动性和跟踪情况"],
+        ["audience", "适合与不适合的投资者"],
+        ["watchlist", "观察条件"]
+      ]
+    },
+    "fund.standard": {
+      "scene": "fund",
+      "depth": "standard",
+      "sections": [
+        ["conclusion", "结论与组合角色"],
+        ["strategy", "产品与策略"],
+        ["return_sources", "收益来源"],
+        ["risks", "风险特征"],
+        ["holdings", "持仓与暴露"],
+        ["management", "管理能力或跟踪质量"],
+        ["fit", "当前市场适配度"],
+        ["actions", "申购、持有与退出条件"]
+      ]
+    },
+    "fund.deep": {
+      "scene": "fund",
+      "depth": "deep",
+      "sections": [
+        ["conclusion", "产品质量、配置时点与组合职责"],
+        ["strategy", "产品契约与策略"],
+        ["lookthrough", "底层持仓穿透"],
+        ["factors", "因子暴露与风格漂移"],
+        ["attribution", "阶段归因与策略容量"],
+        ["peers", "同类基金对比"],
+        ["costs", "费用、流动性与跟踪质量"],
+        ["stress", "极端市场压力测试"],
+        ["overlap", "组合重叠度"],
+        ["actions", "申购、持有与退出条件"]
+      ]
+    },
+    "market.quick": {
+      "scene": "market",
+      "depth": "quick",
+      "sections": [
+        ["conclusion", "今日市场一句话"],
+        ["indices", "核心指数表现"],
+        ["rotation", "领涨与领跌方向"],
+        ["liquidity", "成交与资金"],
+        ["drivers", "最主要驱动"],
+        ["watchlist", "下一交易日观察"]
+      ]
+    },
+    "market.standard": {
+      "scene": "market",
+      "depth": "standard",
+      "sections": [
+        ["conclusion", "市场结论"],
+        ["breadth", "指数与市场宽度"],
+        ["style", "风格与行业"],
+        ["liquidity", "成交与流动性"],
+        ["drivers", "核心驱动"],
+        ["sentiment", "情绪与拥挤"],
+        ["scenarios", "市场情景"],
+        ["watchlist", "下一交易日观察"]
+      ]
+    },
+    "market.deep": {
+      "scene": "market",
+      "depth": "deep",
+      "sections": [
+        ["conclusion", "市场结论"],
+        ["global", "全球市场联动"],
+        ["macro", "宏观、政策与跨资产传导"],
+        ["earnings", "盈利预期与估值"],
+        ["style", "行业与风格"],
+        ["liquidity", "资金结构与风险溢价"],
+        ["history", "历史相似阶段"],
+        ["scenarios", "多情景路径"],
+        ["watchlist", "关键观察指标"]
+      ]
+    },
+    "earnings.quick": {
+      "scene": "earnings",
+      "depth": "quick",
+      "sections": [
+        ["surprise", "业绩是否超预期"],
+        ["change", "收入和利润变化"],
+        ["signals", "最重要的正负变化"],
+        ["thesis", "对投资逻辑的影响"]
+      ]
+    },
+    "earnings.standard": {
+      "scene": "earnings",
+      "depth": "standard",
+      "sections": [
+        ["summary", "业绩摘要"],
+        ["segments", "分业务或分产品"],
+        ["margins", "利润率与费用"],
+        ["cashflow", "现金流与资产负债表"],
+        ["guidance", "管理层指引与预期差"],
+        ["valuation", "估值影响"],
+        ["risks", "风险"]
+      ]
+    },
+    "earnings.deep": {
+      "scene": "earnings",
+      "depth": "deep",
+      "sections": [
+        ["summary", "业绩摘要"],
+        ["trend", "多期趋势"],
+        ["peers", "同业财报交叉验证"],
+        ["primary", "公告与管理层原文"],
+        ["quality", "会计质量与一次性项目"],
+        ["revisions", "预期修正"],
+        ["valuation", "情景估值"],
+        ["thesis", "投资逻辑变化"]
+      ]
+    },
+    "price_move.quick": {
+      "scene": "price_move",
+      "depth": "quick",
+      "sections": [
+        ["move", "价格发生了什么"],
+        ["cause", "最可能原因"],
+        ["confirmed", "已确认公告"],
+        ["risk", "短期风险"]
+      ]
+    },
+    "price_move.standard": {
+      "scene": "price_move",
+      "depth": "standard",
+      "sections": [
+        ["market", "价格与成交异常"],
+        ["timeline", "事件时间线"],
+        ["confirmed", "已确认原因"],
+        ["related", "高相关解释"],
+        ["structure", "市场结构因素"],
+        ["fundamentals", "是否改变基本面"],
+        ["watchlist", "后续验证"]
+      ]
+    },
+    "price_move.deep": {
+      "scene": "price_move",
+      "depth": "deep",
+      "sections": [
+        ["market", "价格、成交与资金"],
+        ["timeline", "事件时间线"],
+        ["primary", "公告与新闻原文核验"],
+        ["sentiment", "市场情绪"],
+        ["history", "历史类似异动"],
+        ["positioning", "资金与筹码"],
+        ["counterfactual", "反事实分析"],
+        ["watchlist", "决定性验证信号"]
+      ]
+    },
+    "portfolio.quick": {
+      "scene": "portfolio",
+      "depth": "quick",
+      "sections": [
+        ["concentration", "集中度"],
+        ["exposure", "主要风险暴露"],
+        ["problem", "最大问题"],
+        ["action", "一个优先动作"]
+      ]
+    },
+    "portfolio.standard": {
+      "scene": "portfolio",
+      "depth": "standard",
+      "sections": [
+        ["objective", "组合目标"],
+        ["holdings", "持仓结构"],
+        ["exposure", "行业与风格暴露"],
+        ["concentration", "集中度与相关性"],
+        ["liquidity", "流动性"],
+        ["drawdown", "回撤来源"],
+        ["rebalance", "再平衡建议"]
+      ]
+    },
+    "portfolio.deep": {
+      "scene": "portfolio",
+      "depth": "deep",
+      "sections": [
+        ["objective", "组合目标"],
+        ["attribution", "因子归因"],
+        ["stress", "情景压力测试"],
+        ["correlation", "相关性失效"],
+        ["tail", "尾部风险"],
+        ["thesis", "持仓投资逻辑一致性"],
+        ["alternatives", "替代方案"],
+        ["rebalance", "再平衡路径"]
+      ]
+    },
+    "screening.quick": {
+      "scene": "screening",
+      "depth": "quick",
+      "sections": [
+        ["criteria", "筛选条件"],
+        ["results", "筛选结果"],
+        ["notes", "结果解释"]
+      ]
+    },
+    "screening.standard": {
+      "scene": "screening",
+      "depth": "standard",
+      "sections": [
+        ["universe", "股票池与数据截止日"],
+        ["criteria", "筛选条件"],
+        ["results", "筛选结果"],
+        ["exclusions", "未入选原因"],
+        ["interpretation", "结果解释"],
+        ["risks", "使用边界"]
+      ]
+    },
+    "screening.deep": {
+      "scene": "screening",
+      "depth": "deep",
+      "sections": [
+        ["universe", "股票池与数据截止日"],
+        ["criteria", "筛选条件与口径"],
+        ["results", "筛选结果"],
+        ["robustness", "稳健性复核"],
+        ["comparisons", "横向比较"],
+        ["exclusions", "未入选原因"],
+        ["risks", "使用边界"],
+        ["followup", "后续研究清单"]
+      ]
+    }
+  }
+}

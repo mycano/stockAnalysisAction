@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "mode": "memory",
+  "template_type": "memory",
+  "style": 1,
+  "motion_scene": "memory-weave",
+  "quality_profile": "showcase",
+  "width": 960,
+  "height": 680,
+  "title": "Evidence Before Narrative",
+  "subtitle": "facts can be sourced · metrics can be derived · frameworks can analyze · nothing may invent a fact",
+  "containers": [
+    { "id": "input-layer", "x": 40, "y": 110, "width": 880, "height": 110, "label": "ASK AND PLAN" },
+    { "id": "memory-core", "x": 40, "y": 260, "width": 880, "height": 140, "label": "EVIDENCE AND ANALYSIS" },
+    { "id": "storage-output", "x": 40, "y": 440, "width": 880, "height": 140, "label": "PUBLISH" }
+  ],
+  "nodes": [
+    { "id": "user", "kind": "user_avatar", "x": 60, "y": 145, "width": 120, "height": 54, "label": "Investor", "fill": "#eff6ff", "stroke": "#3b82f6", "flat": true },
+    { "id": "app", "kind": "rect", "x": 280, "y": 145, "width": 160, "height": 54, "label": "Scene + Framework", "sublabel": "general or expert framework", "fill": "#ffffff", "stroke": "#cbd5e1", "flat": true },
+    { "id": "llm", "kind": "double_rect", "x": 560, "y": 145, "width": 140, "height": 54, "label": "Report Contract", "sublabel": "required sections", "fill": "#faf5ff", "stroke": "#8b5cf6", "flat": true },
+    { "id": "extractor", "kind": "rect", "x": 100, "y": 320, "width": 170, "height": 60, "label": "Structured Evidence", "sublabel": "market · filings · funds", "fill": "#fff7ed", "stroke": "#f97316", "flat": true },
+    { "id": "manager", "kind": "double_rect", "x": 390, "y": 320, "width": 180, "height": 60, "label": "Built-in Web Reach", "sublabel": "fills explicit evidence gaps", "fill": "#faf5ff", "stroke": "#8b5cf6", "flat": true },
+    { "id": "resolver", "kind": "rect", "x": 700, "y": 320, "width": 160, "height": 60, "label": "Source Validator", "sublabel": "authority · date · scope", "fill": "#fff7ed", "stroke": "#f97316", "flat": true },
+    { "id": "vector", "kind": "rect", "x": 100, "y": 500, "width": 160, "height": 60, "label": "Derived Metrics", "sublabel": "formula · inputs · time", "fill": "#ecfdf5", "stroke": "#10b981", "flat": true },
+    { "id": "graph", "kind": "rect", "x": 400, "y": 500, "width": 160, "height": 60, "label": "Publishable Claims", "sublabel": "support or narrow/delete", "fill": "#eff6ff", "stroke": "#3b82f6", "flat": true },
+    { "id": "response", "kind": "speech", "x": 700, "y": 500, "width": 160, "height": 60, "label": "Investor Report", "sublabel": "view · risks · triggers", "fill": "#faf5ff", "stroke": "#8b5cf6", "flat": true }
+  ],
+  "arrows": [
+    { "id": "request", "source": "user", "target": "app", "source_port": "right", "target_port": "left", "flow": "control", "motion_role": "ingress", "motion_stage": 1, "motion_order": 0, "label": "ask" },
+    { "id": "reason", "source": "app", "target": "llm", "source_port": "right", "target_port": "left", "flow": "control", "motion_role": "reason", "motion_stage": 2, "motion_order": 0, "label": "shape" },
+    { "id": "extract", "source": "llm", "target": "extractor", "source_port": "bottom", "target_port": "top", "flow": "data", "motion_role": "extract", "motion_stage": 3, "motion_order": 0, "label": "structured" },
+    { "id": "facts", "source": "extractor", "target": "manager", "source_port": "right", "target_port": "left", "flow": "data", "motion_role": "transform", "motion_stage": 4, "motion_order": 0, "label": "gaps" },
+    { "id": "resolved", "source": "manager", "target": "resolver", "source_port": "right", "target_port": "left", "flow": "feedback", "motion_role": "resolve", "motion_stage": 4, "motion_order": 1, "label": "validate" },
+    { "id": "write", "source": "resolver", "target": "vector", "source_port": "bottom", "target_port": "top", "flow": "write", "motion_role": "memory-write", "motion_stage": 5, "motion_order": 0, "label": "derive", "corridor_y": [420] },
+    { "id": "relate", "source": "vector", "target": "graph", "source_port": "right", "target_port": "left", "flow": "read", "motion_role": "memory-read", "motion_stage": 6, "motion_order": 0, "label": "support" },
+    { "id": "context", "source": "graph", "target": "response", "source_port": "right", "target_port": "left", "flow": "control", "motion_role": "response-context", "motion_stage": 7, "motion_order": 0, "label": "publish" }
+  ],
+  "legend_orientation": "horizontal",
+  "legend_x": 48,
+  "legend_y": 600,
+  "legend_locked": true,
+  "legend": [
+    { "flow": "control", "label": "research flow" },
+    { "flow": "data", "label": "evidence planning" },
+    { "flow": "write", "label": "deterministic derivation" },
+    { "flow": "read", "label": "claim support" }
+  ],
+  "footer": "Missing facts are searched, derived only by formula, narrowed when unresolved, and never guessed",
+  "footer_x": 48,
+  "footer_y": 650
+}

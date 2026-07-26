@@ -1,7 +1,7 @@
 interface:
   display_name: "全球股市深度复盘"
-  short_description: "多市场行情、投资记忆、专家 lens 与六模块证据驱动复盘"
-  default_prompt: "使用 $stock-analysis 复盘当前全球市场；默认走 committee 投委会模式并进行 m1/m6 综合深度分析；我明确要求分析持仓时先读取本地 stock-analysis 投资记忆；如果我指定单一专家或 adversarial 辩论，则按 stock-analysis 内置 lens 视角输出。"
+  short_description: "多市场、个股、基金、组合与独立专家 Lens 的投资者研究报告"
+  default_prompt: "使用 $stock-analysis 生成面向投资者的完整研究报告；未指定专家时按对应场景的 Standard 通用报告契约执行，不展示路由、证据 JSON 或工程日志；只有我明确指定专家、对抗视角或投委会时才进入独立 Lens 研究路径。"
 
 policy:
   allow_implicit_invocation: true

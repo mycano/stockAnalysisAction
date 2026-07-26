@@ -15,6 +15,8 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
+from .presentation import build_delivery
+from .report_contracts import load_report_contract
 from .screening_baseline import FINANCIAL_FIELD_CONTRACT, normalize_annual_financial_row
 
 FIELD_ALIASES = {
@@ -161,29 +163,50 @@ def screen(
     }
 
 
-def render_markdown(result: dict[str, Any]) -> str:
+def render_markdown(result: dict[str, Any], *, depth: str = "standard") -> str:
     request = result["request"]
     universe = result["universe"]
     labels = " AND ".join(_filter_label(item) for item in request["filters"])
-    lines = [
-        f"# A股条件命中股票（{request['fiscal_year']} 年报）",
-        "",
-        f"条件：{labels}；排序：{request['sort']['field']} {request['sort']['direction']}；Top {request['limit']}。",
-        f"当前 Universe：{universe['universe_as_of']}，{universe['record_count']} 只，已通过完整性对账。",
-        "",
-        "这是一份确定性条件命中清单，不构成优质公司认定或投资建议。",
-        "",
+    results_table = [
         "| 代码 | 名称 | 加权 ROE | 营收同比 |",
         "|---|---|---:|---:|",
     ]
     for item in result["results"]:
-        lines.append(
+        results_table.append(
             f"| {item['symbol']} | {item['name']} | {_format_pct(item['values']['roe_weighted_pct'])} "
             f"| {_format_pct(item['values']['revenue_growth_yoy_pct'])} |"
         )
     if not result["results"]:
-        lines.append("| - | 无条件命中股票 | - | - |")
-    return "\n".join(lines) + "\n"
+        results_table.append("| - | 无条件命中股票 | - | - |")
+    quality = result["quality"]
+    content = {
+        "universe": [
+            f"当前股票池截止 {universe['universe_as_of']}，共 {universe['record_count']} 只，已完成数量与唯一性核对。"
+        ],
+        "criteria": [
+            f"报告期为 {request['fiscal_year']} 年报；筛选条件为 {labels}；取前 {request['limit']} 项结果。"
+        ],
+        "results": results_table,
+        "notes": ["筛选结果只表示条件命中，不等于公司质量或投资价值结论。"],
+        "exclusions": [
+            f"未命中 {quality['fail']} 项，因数据或股票池边界未能判断 {quality['unknown']} 项。"
+        ],
+        "interpretation": ["结果适合作为后续研究清单，需继续复核商业模式、现金流、估值与风险。"],
+        "risks": ["报告期口径、股票池时点和财务披露完整性变化，都可能改变筛选结果。"],
+        "robustness": ["稳健性复核应改变阈值、排序和报告期，检查结果是否高度依赖单一设定。"],
+        "comparisons": ["横向比较需在相同行业、会计口径和资本结构下进行。"],
+        "followup": ["优先研究排名靠前且财务口径完整的标的，并逐一核对原始披露。"],
+    }
+    contract = load_report_contract("screening", depth)
+    lines = [f"# A股条件筛选报告（{request['fiscal_year']} 年报）", ""]
+    for section in contract.sections:
+        lines.extend([f"## {section.heading}", "", *content[section.section_id], ""])
+    lines.append("本报告不构成个性化投资建议。")
+    report = "\n".join(lines).strip()
+    violations = contract.validate(report)
+    if violations:
+        raise ValueError("；".join(violations))
+    return build_delivery(report).report + "\n"
 
 
 def write_evidence(result: dict[str, Any], directory: str | Path) -> Path:

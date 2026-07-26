@@ -1,9 +1,27 @@
-# stock-analysis demo video
+# stock-analysis bilingual demo
 
-Editable bilingual 72-second, 1920×1080 Remotion product demo.
+Editable 72-second, 1920×1080 Remotion introduction for v5.0.
+
+The English and Simplified Chinese cuts show the same investor journey:
+
+```text
+plain-language question
+→ scene or explicit investment framework
+→ built-in public evidence
+→ source/time validation and reproducible derivation
+→ valuation, risks, catalysts, and action conditions
+→ actionable research report
+```
+
+The video makes three v5.0 promises explicit:
+
+- evidence is verified before a view is formed;
+- stocks, funds, markets, earnings, price moves, and portfolios use scene-specific research;
+- the 15 expert frameworks are distinct research protocols, not writing styles.
 
 ```bash
 npm install
+npm run check
 npm run studio
 npm run still
 npm run render
@@ -14,8 +32,9 @@ npm run render
 - Final outputs:
   - `out/stock-analysis-demo-en.mp4`
   - `out/stock-analysis-demo-zh-CN.mp4`
-- Preview stills: `out/preview-en.png`, `out/preview-zh-CN.png`
+- Preview stills:
+  - `../../assets/demo-video-preview-en.png`
+  - `../../assets/demo-video-preview-zh-CN.png`
 
-The demo intentionally uses no voiceover or music, so it works in muted social feeds and can be localized by editing the scene copy in `src/video.jsx`.
-
-The v4.16 cut carries A/HK/US/JP/KR evidence through forward/reverse valuation, deterministic claim extraction, discrete publication rules, audit artifacts, and committee review. Ordinary missing evidence filters or narrows a research claim instead of becoming an investment direction.
+The composition uses captions instead of voiceover or music, so it remains
+usable in muted feeds and is localized entirely in `src/video.jsx`.

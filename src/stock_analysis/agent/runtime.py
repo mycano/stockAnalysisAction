@@ -87,7 +87,7 @@ def _validate_output(resolved: ResolvedRequest, result: WorkflowResult | None) -
                 "passed": str(section) in result.stdout,
             }
         )
-    workspace = _workspace_from_stdout(result.stdout)
+    workspace = _workspace_from_stderr(result.stderr)
     for artifact in contract.get("required_artifacts") or []:
         try:
             artifact_name = str(artifact).format(**resolved.arguments)
@@ -107,9 +107,9 @@ def _validate_output(resolved: ResolvedRequest, result: WorkflowResult | None) -
     return {"valid": all(item["passed"] for item in checks), "checks": checks}
 
 
-def _workspace_from_stdout(stdout: str) -> Path | None:
-    for line in reversed(stdout.splitlines()):
-        prefix = "Research Workspace:"
+def _workspace_from_stderr(stderr: str) -> Path | None:
+    for line in reversed(stderr.splitlines()):
+        prefix = "STOCK_ANALYSIS_WORKSPACE="
         if line.startswith(prefix):
             value = line[len(prefix) :].strip()
             return Path(value) if value else None

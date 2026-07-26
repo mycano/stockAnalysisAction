@@ -102,7 +102,7 @@ def test_reached_primary_evidence_enforces_symbol_url_and_date(tmp_path):
             {
                 "schema_version": "1.0",
                 "symbol": "7203.T",
-                "retrieval_method": "agent-reach-or-host-web",
+                "retrieval_method": "stock-analysis-external-evidence",
                 "items": [
                     {
                         "module": "C2",

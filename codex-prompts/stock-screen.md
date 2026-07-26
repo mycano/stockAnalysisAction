@@ -4,12 +4,12 @@ description: "已弃用的 /stock-screen 兼容入口；转发到 /screen。"
 managed_by: "stock-analysis"
 schema_version: "2.0"
 command_id: "stock-analysis.screen"
-catalog_hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+catalog_hash: "sha256:d9cb45c6da32283c234898cc2e843baa08bb49c487b4c48fbcf62ed1e879a8ac"
 host_target: "codex-prompt"
 x-stock-analysis-managed: true
 x-stock-analysis-schema: "agent-entrypoint/v2"
 x-stock-analysis-command: "screen"
-x-stock-analysis-catalog-hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+x-stock-analysis-catalog-hash: "sha256:d9cb45c6da32283c234898cc2e843baa08bb49c487b4c48fbcf62ed1e879a8ac"
 deprecated: true
 ---
 
@@ -25,8 +25,8 @@ deprecated: true
 然后以独立 argv 元素调用：
 
 ```text
-stock-analysis agent route --request <HostRequest JSON>
 stock-analysis agent run --request <HostRequest JSON>
 ```
 
-不得使用 `--input`，不得拼接 Shell 字符串，且必须保留 Router 的阻断、重定向和原因码。
+不得使用 `--input`，不得拼接 Shell 字符串。路由、阻断、重定向、原因码和内部路径均
+保持内部可审计，不得展示给用户；用户只看到自然语言结果与必要的数据边界说明。

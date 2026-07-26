@@ -9,14 +9,22 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from . import __version__
-from .company_evidence import build_company_evidence
+from .company_evidence import (
+    build_company_evidence,
+    enrich_company_evidence_from_web,
+    enrich_company_peer_comparison,
+)
 from .config import SourceConfig
 from .csi_index import FUND_INDEX_CODES, build_csi_index_snapshot
 from .diagnostics import run_diagnostics
 from .evidence import EvidenceBundle
 from .exchange import attribute_price_and_fx, fetch_cny_rate_history
 from .execution_costs import build_execution_cost_model
-from .fund_research import build_fund_evidence, build_fund_research_workspace
+from .fund_research import (
+    build_fund_evidence,
+    build_fund_research_workspace,
+    enrich_fund_evidence_from_web,
+)
 from .global_markets import fetch_yahoo_financials
 from .integrations import (
     fetch_a_index_price_volume,
@@ -53,8 +61,13 @@ from .portfolio import build_portfolio_snapshot
 from .primary_disclosures import load_issuer_primary_facts
 from .profile import load_holdings_from_profile
 from .reached_evidence import load_reached_primary_evidence
-from .reporting import render_diagnostics, render_report_with_metadata
+from .reporting import render_diagnostics
 from .research_cli import ResearchCommandServices, run_research_command
+from .research_reports import (
+    compose_lens_report,
+    compose_market_report,
+    compose_portfolio_report,
+)
 from .research_workspace import build_research_workspace
 from .screening import load_security_master, parse_filter, parse_sort, screen
 from .screening import render_markdown as render_screen_markdown
@@ -67,7 +80,9 @@ from .workflows import render_earnings_review, render_price_move, render_stock_r
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Evidence-driven global stock market recap")
+    parser = argparse.ArgumentParser(
+        description="Investor-ready research for stocks, funds, markets, earnings, price moves, and portfolios"
+    )
     parser.add_argument("--version", action="version", version=__version__)
     parser.add_argument("legacy_date", nargs="?", help=argparse.SUPPRESS)
     parser.add_argument("--date", help="Explicit trade date YYYYMMDD")
@@ -94,14 +109,31 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--disable-mootdx", action="store_true")
     parser.add_argument("--enable-mootdx", action="store_true")
     parser.add_argument("--emit-evidence", action="store_true")
+    parser.add_argument("--emit-internal-path", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--research-mode", choices=["general", "lens"], default="general")
     parser.add_argument("--lens", help="Investor lens id for single mode, e.g. buffett")
-    parser.add_argument("--mode", choices=["single", "committee", "adversarial"], help="Lens analysis mode")
-    parser.add_argument("--lenses", help="Comma-separated lens ids for committee or adversarial mode")
+    parser.add_argument(
+        "--lens-mode",
+        choices=["single", "parallel", "adversarial", "committee"],
+        help="Independent expert-framework research protocol",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=["single", "parallel", "committee", "adversarial"],
+        help=argparse.SUPPRESS,
+    )
+    parser.add_argument("--lenses", help="Comma-separated lens ids")
+    parser.add_argument(
+        "--delivery-budget",
+        choices=["concise", "full"],
+        default="full",
+        help="Lens delivery length budget; does not change the expert framework",
+    )
     parser.add_argument(
         "--report-style",
-        default="committee",
+        default="classic",
         choices=["classic", "committee"],
-        help="deprecated alias; all reports use committee structure (default)",
+        help="deprecated compatibility option; General reports use scene/depth contracts",
     )
     parser.add_argument(
         "--symbol",
@@ -119,7 +151,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--research-question",
-        help="Research question used to select the six most relevant committee lenses",
+        help="Research focus used by the report contract or an explicitly selected Lens",
+    )
+    parser.add_argument(
+        "--depth",
+        choices=("quick", "standard", "deep"),
+        default="standard",
+        help="General research depth; ignored when an explicit Lens protocol is selected",
+    )
+    parser.add_argument(
+        "--external-evidence",
+        choices=("auto", "off"),
+        default="auto",
+        help="Use stock-analysis built-in public-web evidence acquisition",
     )
     parser.add_argument(
         "--expectations-file",
@@ -127,7 +171,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--primary-evidence-file",
-        help="Agent-reached issuer-primary JSON evidence with source URL and publication cutoff",
+        help="Imported issuer-primary JSON evidence with source URL and publication cutoff",
     )
     parser.add_argument("--from-version", help="Starting immutable thesis version, e.g. 1 or v1")
     parser.add_argument("--to-version", help="Ending immutable thesis version, e.g. 2 or v2")
@@ -672,6 +716,7 @@ def run(argv: list[str] | None = None) -> int:
         return run_agent(effective_argv[1:])
     parser = build_parser()
     args = parser.parse_args(effective_argv)
+    requested_market = args.market
     now = datetime.now()
     market = "a" if args.market in {"daily", "a", "global", "screen", "portfolio"} else args.market
     if args.symbol:
@@ -729,6 +774,9 @@ def run(argv: list[str] | None = None) -> int:
             render_thesis_create=_render_thesis_create,
             render_thesis_review=_render_thesis_review,
             load_reached_primary_evidence=load_reached_primary_evidence,
+            enrich_company_evidence_from_web=enrich_company_evidence_from_web,
+            enrich_fund_evidence_from_web=enrich_fund_evidence_from_web,
+            enrich_company_peer_comparison=enrich_company_peer_comparison,
         )
         return run_research_command(args, parser, trade_date, services)
     if args.market == "screen":
@@ -753,7 +801,7 @@ def run(argv: list[str] | None = None) -> int:
             )
         except ValueError as exc:
             parser.error(str(exc))
-        print(render_screen_markdown(result), end="")
+        print(render_screen_markdown(result, depth=args.depth), end="")
         if args.emit_evidence:
             write_screen_evidence(result, Path.cwd())
         return 0
@@ -784,20 +832,30 @@ def run(argv: list[str] | None = None) -> int:
         include_holdings=plan.include_holdings,
         holdings=plan.holdings,
     )
-    quality = evidence.quality()
-    result = render_report_with_metadata(
-        trade_date=trade_date,
-        session_label=plan.session_label,
-        evidence=evidence,
-        quality=quality,
-        portfolio_snapshot=portfolio_snapshot,
-        report_format=plan.report_format,
-        lens=args.lens,
-        lenses=lenses,
-        mode=plan.mode,
-        research_question=args.research_question,
-    )
-    print(result.markdown)
+    evidence.quality()
+    explicit_lens = args.research_mode == "lens" or bool(args.lens or lenses)
+    if explicit_lens:
+        selected_lenses = lenses or ((args.lens,) if args.lens else ())
+        lens_mode = args.lens_mode or args.mode or (
+            "single" if len(selected_lenses) == 1 else "parallel" if selected_lenses else "committee"
+        )
+        print(
+            compose_lens_report(
+                {
+                    "name": "投资组合" if requested_market == "portfolio" else "市场",
+                    "symbol": trade_date,
+                    "trade_date": trade_date,
+                    "modules": evidence.modules,
+                },
+                lens_mode=lens_mode,
+                lenses=selected_lenses,
+                delivery_budget=args.delivery_budget,
+            )
+        )
+    elif requested_market == "portfolio":
+        print(compose_portfolio_report(portfolio_snapshot, depth=args.depth))
+    else:
+        print(compose_market_report(evidence, trade_date=trade_date, depth=args.depth))
     if args.emit_evidence:
         base = Path.cwd()
         (base / f"evidence_{trade_date}.json").write_text(
@@ -820,30 +878,40 @@ def _should_include_holdings(market: str, explicitly_requested: bool) -> bool:
 
 
 def _render_thesis_create(thesis: dict[str, Any], path: Path) -> str:
+    del path
+    status = {
+        "evidence_insufficient": "待补充关键事实",
+        "under_review": "研究中",
+        "invalidated": "已失效",
+    }.get(str(thesis["status"]), str(thesis["status"]))
     return "\n".join(
         [
             f"# 投资论文已创建：{thesis['name']}（{thesis['symbol']}）",
             "",
-            f"- 状态：{thesis['status']}",
-            f"- 文件：{path}",
-            f"- 证据覆盖：{thesis['evidence_snapshot']['coverage']}%",
-            "- 已保存结构化事实、反证栏位、失效条件栏位和下一次复查栏位；请仅以可验证来源补充内容。",
+            f"- 当前状态：{status}",
+            "- 已建立核心假设、支持事实、反方证据、估值条件、失效条件和下一次复查栏位。",
+            "- 后续更新将保留历史版本，不会静默覆盖。",
         ]
     )
 
 
 def _render_thesis_review(thesis: dict[str, Any] | None, path: Path, changes: list[str]) -> str:
+    del path
     if thesis is None:
-        return "\n".join(["# 投资论文复查", "", f"- 文件：{path}", f"- {changes[0]}"])
+        return "\n".join(["# 投资论文复查", "", f"- {changes[0]}"])
+    status = {
+        "evidence_insufficient": "待补充关键事实",
+        "under_review": "研究中",
+        "invalidated": "已失效",
+    }.get(str(thesis["status"]), str(thesis["status"]))
     return "\n".join(
         [
             f"# 投资论文复查：{thesis['name']}（{thesis['symbol']}）",
             "",
-            f"- 文件：{path}",
-            f"- 当前状态：{thesis['status']}",
+            f"- 当前状态：{status}",
             "- 自动识别的变化：",
             *[f"  - {change}" for change in changes],
-            "- 自动 diff 只比较结构化 Evidence；商业判断、管理层评价和证伪条件仍需核对原始披露。",
+            "- 自动比较只覆盖结构化事实；商业判断、管理层评价和证伪条件仍需核对原始披露。",
         ]
     )
 

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "mode": "memory",
+  "template_type": "memory",
+  "style": 1,
+  "motion_scene": "memory-weave",
+  "quality_profile": "showcase",
+  "width": 960,
+  "height": 680,
+  "title": "先证据，后叙事",
+  "subtitle": "事实可以联网补证 · 指标只能确定性派生 · 框架负责分析 · 模型不得编造事实",
+  "containers": [
+    { "id": "input-layer", "x": 40, "y": 110, "width": 880, "height": 110, "label": "提问与规划" },
+    { "id": "memory-core", "x": 40, "y": 260, "width": 880, "height": 140, "label": "证据与分析" },
+    { "id": "storage-output", "x": 40, "y": 440, "width": 880, "height": 140, "label": "发布" }
+  ],
+  "nodes": [
+    { "id": "user", "kind": "user_avatar", "x": 60, "y": 145, "width": 120, "height": 54, "label": "投资者", "fill": "#eff6ff", "stroke": "#3b82f6", "flat": true },
+    { "id": "app", "kind": "rect", "x": 280, "y": 145, "width": 160, "height": 54, "label": "场景与模式", "sublabel": "通用模式或专家框架", "fill": "#ffffff", "stroke": "#cbd5e1", "flat": true },
+    { "id": "llm", "kind": "double_rect", "x": 560, "y": 145, "width": 140, "height": 54, "label": "报告契约", "sublabel": "强制章节", "fill": "#faf5ff", "stroke": "#8b5cf6", "flat": true },
+    { "id": "extractor", "kind": "rect", "x": 100, "y": 320, "width": 170, "height": 60, "label": "结构化证据", "sublabel": "行情 · 公告 · 基金", "fill": "#fff7ed", "stroke": "#f97316", "flat": true },
+    { "id": "manager", "kind": "double_rect", "x": 390, "y": 320, "width": 180, "height": 60, "label": "内置联网补证", "sublabel": "补足明确的证据缺口", "fill": "#faf5ff", "stroke": "#8b5cf6", "flat": true },
+    { "id": "resolver", "kind": "rect", "x": 700, "y": 320, "width": 160, "height": 60, "label": "来源校验", "sublabel": "权威性 · 时点 · 口径", "fill": "#fff7ed", "stroke": "#f97316", "flat": true },
+    { "id": "vector", "kind": "rect", "x": 100, "y": 500, "width": 160, "height": 60, "label": "派生指标", "sublabel": "公式 · 输入 · 时点", "fill": "#ecfdf5", "stroke": "#10b981", "flat": true },
+    { "id": "graph", "kind": "rect", "x": 400, "y": 500, "width": 160, "height": 60, "label": "可发布命题", "sublabel": "支持，或缩窄与删除", "fill": "#eff6ff", "stroke": "#3b82f6", "flat": true },
+    { "id": "response", "kind": "speech", "x": 700, "y": 500, "width": 160, "height": 60, "label": "投资研究报告", "sublabel": "观点 · 风险 · 条件", "fill": "#faf5ff", "stroke": "#8b5cf6", "flat": true }
+  ],
+  "arrows": [
+    { "id": "request", "source": "user", "target": "app", "source_port": "right", "target_port": "left", "flow": "control", "motion_role": "ingress", "motion_stage": 1, "motion_order": 0, "label": "提问" },
+    { "id": "reason", "source": "app", "target": "llm", "source_port": "right", "target_port": "left", "flow": "control", "motion_role": "reason", "motion_stage": 2, "motion_order": 0, "label": "定结构" },
+    { "id": "extract", "source": "llm", "target": "extractor", "source_port": "bottom", "target_port": "top", "flow": "data", "motion_role": "extract", "motion_stage": 3, "motion_order": 0, "label": "结构化" },
+    { "id": "facts", "source": "extractor", "target": "manager", "source_port": "right", "target_port": "left", "flow": "data", "motion_role": "transform", "motion_stage": 4, "motion_order": 0, "label": "缺口" },
+    { "id": "resolved", "source": "manager", "target": "resolver", "source_port": "right", "target_port": "left", "flow": "feedback", "motion_role": "resolve", "motion_stage": 4, "motion_order": 1, "label": "校验" },
+    { "id": "write", "source": "resolver", "target": "vector", "source_port": "bottom", "target_port": "top", "flow": "write", "motion_role": "memory-write", "motion_stage": 5, "motion_order": 0, "label": "派生", "corridor_y": [420] },
+    { "id": "relate", "source": "vector", "target": "graph", "source_port": "right", "target_port": "left", "flow": "read", "motion_role": "memory-read", "motion_stage": 6, "motion_order": 0, "label": "支持" },
+    { "id": "context", "source": "graph", "target": "response", "source_port": "right", "target_port": "left", "flow": "control", "motion_role": "response-context", "motion_stage": 7, "motion_order": 0, "label": "发布" }
+  ],
+  "legend_orientation": "horizontal",
+  "legend_x": 48,
+  "legend_y": 600,
+  "legend_locked": true,
+  "legend": [
+    { "flow": "control", "label": "研究流程" },
+    { "flow": "data", "label": "证据规划" },
+    { "flow": "write", "label": "确定性派生" },
+    { "flow": "read", "label": "命题支持" }
+  ],
+  "footer": "缺事实先搜索 · 能复算才派生 · 仍无法验证就缩窄结论 · 绝不猜数据",
+  "footer_x": 48,
+  "footer_y": 650
+}

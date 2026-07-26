@@ -1,8 +1,8 @@
 ---
 name: stock-analysis
-description: 全球股市深度复盘技能。用于 A股、港股、美股、日股、韩股和基金的当前行情、盘前/盘中/盘后复盘、证据驱动分析与公司研究；日韩使用免费免登录行情、独立交易日历，并在缺少一手财务时触发自包含的 primary-evidence-reach 能力。
+description: 面向投资者的全球市场、个股、基金、财报、异动、筛选和组合研究技能。默认交付自然语言报告，内置公开网络补证；显式指定专家时进入独立 Lens 投资框架研究。
 metadata:
-  version: "4.17.0"
+  version: "5.0.0"
   author: "Hermes Agent + yjw"
   platforms: "linux, macos, windows"
 ---
@@ -34,19 +34,19 @@ uv run python -m stock_analysis --market research --symbol 512480 --asset-type f
 ```
 
 - 默认 `--format auto`：根据当前北京时间自动选择 `summary`、`key-points` 或 `full`。
-- 默认输出投委会（committee）统一报告结构（执行摘要 + M1–M6 + 建议/风险提示）；正文不输出证据附录，审计数据只通过 `--emit-evidence` 文件保留。`--report-style classic` 仅为兼容别名。
+- 用户未指定专家框架时进入通用研究路径：Quick、Standard、Deep 按个股、基金、大盘、财报、异动、组合和筛选场景使用固定报告结构；`/analyze` 默认交付完整 Standard 报告。
 - 所有报告类型（盘前、盘中、午间、盘后、个股、基金）及其专家视角必须优先使用 Evidence Pack 中的补充证据、精选资讯和稳定公开数据源；仍不可得的指标必须保留缺口，不得补零或外推。
 - 日本代码必须使用 `.T`（如 `7203.T`），韩国使用 `.KS` / `.KQ`；不得把裸 4 位代码猜成日本、裸 6 位代码猜成韩国。
-- 港股与日韩免费免登录财务聚合缺少公告日期时保持 conditional；美股优先使用 SEC Company Facts 的有截止日一手 XBRL。任一市场若 `_meta.source_events` 标记 `agent_primary_evidence_reach=recommended`，必须调用随安装包提供的 `primary-evidence-reach` Skill，并严格按 `_meta.primary_evidence_requests` 补齐经营、治理、资本配置、风险和催化剂原文；环境已有 `agent-reach` 时优先使用其路由，没有时使用宿主网页/PDF 能力，不要求用户另装 Skill。
+- 港股与日韩免费免登录财务聚合缺少公告日期时保持 conditional；美股优先使用 SEC Company Facts 的有截止日一手 XBRL。缺少关键事实时由 `stock-analysis.external_evidence` 内置能力按证据计划搜索和读取公开原文，优先交易所、监管机构、公司公告和正式披露；不得要求用户安装额外搜索 Skill、MCP 或第三方仓库。
 - `--date YYYYMMDD` 仅在用户明确指定日期时使用；未指定时自动解析最近 A股交易日。
-- `--emit-evidence` 保留 `evidence_YYYYMMDD.json` 与 6 个模块 JSON。
+- 审计产物默认保存在内部工作区，不进入用户对话。只有用户显式使用 `--emit-evidence` 或 `--debug` 时才展示或导出相应工程信息。
 - trading 入口按“用户完整持仓输入 → 本技能投资记忆 → 无持仓”的优先级决定是否输出持仓分析；用户完整输入会覆盖写入 `~/.stock_analysis/profile.json` 或 `STOCK_ANALYSIS_PROFILE`。
 - `--market stock --symbol <代码>` 与 `--market fund --symbol <代码>` 是确定性速览入口，不触发 LLM；A股单股速览会补充东财 datacenter 已披露财务快照和 Sina 盘口价差快照，基金速览会补充公开长期业绩、前端费率、规模和基金经理画像，缺字段保留空值并提示缺口。
 - `stock-review`、`earnings`、`price-move` 与 `thesis-*` 是公司场景入口：先生成独立的 C1–C8 Company Evidence Pack，绝不把 M1–M6 市场证据当作公司事实。`stock-review` 只能给出已验证事实、明确缺口和观察条件；`earnings` 只复核已披露结构化财务事实；`price-move` 区分价格/量价/新闻样本与未解释部分，不能把相关性断言为主因。
 - `thesis-create` 和 `thesis-review` 只在用户明确请求时读写 `~/.stock_analysis/theses`（可由 `STOCK_ANALYSIS_THESIS_DIR` 覆盖）。论文保存支持事实、反证和失效条件的结构，自动 diff 只比较结构化 Evidence，不能替代一手披露复核。
-- `research` 在用户明确请求深度股票或基金研究时创建或恢复 Research Workspace。默认路径为 `~/.stock_analysis/research/<symbol>/<trade_date>/`，可由 `STOCK_ANALYSIS_RESEARCH_DIR` 或 `--workspace-dir` 覆盖；股票冻结 C1–C8 Company Evidence，基金冻结 F1–F8 Fund Evidence。各自 lens opinions 与 committee synthesis 必须消费同一个 `snapshot_id`，并保存研究计划、证据摘要、决策 memo 和机构报告。人工修改过的阶段文件不得被静默覆盖。每位 lens 将命题隔离为 `publishable_claims` 与 `unpublished_questions`，committee 只能综合前者。
+- `research` 是个股和基金的完整研究入口。默认路径为 `~/.stock_analysis/research/<symbol>/<trade_date>/`，可由 `STOCK_ANALYSIS_RESEARCH_DIR` 或 `--workspace-dir` 覆盖；股票冻结 C1–C8 Company Evidence，基金冻结 F1–F8 Fund Evidence。内部仍保存研究计划、来源、命题和审计历史，人工修改过的阶段文件不得被静默覆盖；默认用户侧只消费最终投资者报告。
 - `--asset-type auto|company|fund` 控制 `research` 路由；`auto` 识别常见 A股场内基金前缀。Fund Research 独立评估产品契约、指数暴露、集中度、业绩、折溢价、tracking quality、风险和运营，不把 Company C1–C8 套到 ETF，也不以 ETF 单价替代底层成分估值。
-- Research 机构报告沿用中文投委会骨架：执行摘要 → 核心矛盾/产品契约 → 财务或持仓 → 资本配置或业绩风险 → 估值与交易实现 → 投委会审议 → 风险催化 → 条件化动作。`Coverage`、`Missing`、`manual_review`、快照 ID 与内部审计结果只进入 JSON/Workspace，不得出现在用户报告或替代投资分析。
+- 通用 Research 报告严格加载 `report_contracts/` 中的场景与深度契约；Standard 必须是完整可用报告，Deep 必须增加实质研究而非机械扩写。显式 Lens 请求完全采用对应专家框架自己的证据需求和报告结构，不加载通用 Deep 骨架。
 - `research` 机构报告采用离散命题发布规则：`strongly_supported` 与 `supported` 可以进入正文，`unsupported`、`speculative`、`conflicted_unresolved` 只进入审计产物。缺失证据只影响命题发布范围，不得被解释为 bearish、neutral、保守、观望或等待信号；范围可缩窄时使用 `missing_evidence_effect=narrows_scope`。Company 估值可以用已披露年度 EPS/BPS 生成静态 PE/PB proxy 与敏感性情景，但必须明确不是目标价。
 - `research` Workspace 固定保留 `evidence_manifest.json`、`claim_ledger.json`、`coverage_report.json`、`unpublished_claims.json`。价格、总市值或流动性缺失只阻断估值/执行行动；身份、口径完整性、一手冲突、前视偏差或完全没有可发布命题才阻断整份报告。
 - Company Evidence 可从财务历史派生净利率、经营现金转化和年度毛利稳定性，作为商业经济性与护城河代理；一手年报事实通过 PDF 文本抽取与 JSON 规则目录进入 C1–C8，新增发行人不得在 Python 报告逻辑中硬编码数值。所有派生项必须保留公式和状态。
@@ -54,7 +54,7 @@ uv run python -m stock_analysis --market research --symbol 512480 --asset-type f
 - Company 研究先审计用户前提，再处理证据冲突：只有报告期、会计口径和范围可比时才按来源层级与新鲜度仲裁。C8 的关键假设应绑定指标、基准、下次检查日期和观点变化条件，而不是只列宽泛风险。
 - Fund Research 应优先读取指数公司官方样本、月末权重、每日指数估值和标的指数日线；日线与 ETF 严格按交易日对齐后重算相关系数、beta、tracking error 与主动收益。任一官方文件不可用时只降级对应指标，不得让估值文件失败吞掉仍可取得的指数日线。
 - 股票、基金与持仓场景统一调用交易成本情景模型：至少包含实时买卖价差、20 日平均成交额、波动率冲击、订单参与率、券商佣金假设、交易所经手费、适用的过户费/卖出印花税，以及基金管理费/托管费和折溢价观察。默认给出 10 万、100 万、500 万元三档；这是可校准情景，不得冒充用户真实成本。
-- 问题驱动的 6 人投委会适用于 Research 与市场/持仓报告的所有 committee 入口。市场持仓中的发行人一手披露、结构化财务、基金标的指数和交易成本也要进入公共证据契约；每位入选委员必须消费所有公共指标，再按框架区分核心证据与背景证据。
+- 投委会只在用户明确要求时启用。可用 Lens 固定为 15 套，但具体问题可选择相关框架；单 Lens、并列 Lens、双 Lens 对抗和全部专家委员会均使用共享基础证据、框架专属证据和争议补证，不拼接原始角色对话。
 - Company Evidence 对已接入源补充财报/业绩预告/快报、PE/PB/市值、融资现金流，以及公告索引中的治理和资本配置事件。东财/Futu 聚合内容仍标为 secondary；未回查交易所或公司原文时不得写成已验证的一手原文。
 - 每条 Company evidence 必须有稳定 `evidence_id` 和 `validation_status`；Company lens 只能引用冻结快照中的 ID。committee 必须拒绝混用不同 `snapshot_id` 的 opinions，只能从可发布命题形成条件化研究结论，不得自动推导仓位或买卖动作。
 - `mootdx` 默认关闭；只有明确需要五档、逐笔或深度分钟 K 时才使用 `--enable-mootdx`。
@@ -176,7 +176,7 @@ uv run stock-analysis --market screen \
 
 用户明确要求“复盘、深度复盘、6 模块、证据驱动复盘”时，优先输出 `full`。
 
-默认 committee 市场复盘固定顺序：
+默认 Standard 市场复盘固定顺序：
 
 1. 执行摘要
 2. 大盘指数概览
@@ -188,7 +188,7 @@ uv run stock-analysis --market screen \
 
 综合持仓建议与通用市场建议固定包含：现状总结、基准跑赢/跑输、条件化仓位动作、下一交易日观察清单、风险提示。
 
-single 或 adversarial 模式不强制套用 committee 固定顺序，应以对应专家投资风格组织正文。
+single、parallel、adversarial 或 committee 模式不套用通用市场固定顺序，应以对应专家框架组织证据和正文。
 
 ## Evidence Pack
 
@@ -200,8 +200,8 @@ single 或 adversarial 模式不强制套用 committee 固定顺序，应以对�
 基础评分权重：M1 20、M2 20、M3 20、M4 15、M5 15、M6 10。
 
 - `>=80`：完整报告。
-- `60-79`：完整报告，并列出缺失模块。
-- `<60`：full 复盘仍保留固定章节顺序；缺失模块在对应 M1-M6 章节内标注“证据暂缺”，summary/key-points 可按格式裁剪但必须保留免责声明。
+- `60-79`：完整报告，内部记录缺失模块；报告外只说明实质影响结论的数据边界。
+- `<60`：仍按场景契约交付当前证据支持的报告；无法支持的命题删除或缩窄，内部保留缺失模块，不在正文逐章重复。
 
 `_meta` 至少包含 `trade_date`、`session`、`quality_score`、`missing_modules`、`source_events`。
 
@@ -233,7 +233,7 @@ single 或 adversarial 模式不强制套用 committee 固定顺序，应以对�
 
 6 模块方法见 `references/methodology/`，报告模板见 `references/template/`，输出纪律见 `references/output_discipline.md`。
 
-`stock-analysis` 固定负责 M1-M6 的证据包、评分和研报正文；内置投资专家 lens、默认 committee 成员和综合规则来自本 skill 的固定文件：`config/lenses/*.json` 与 `scripts/lens_registry.py`。本 skill 不要求用户安装任何外部行情 CLI，也不得为了 lens 或 committee 流程安装、调用或转交给外部工具；不得假设本机存在任何外部行情命令。
+`stock-analysis` 固定负责 M1-M6 的内部证据、评分和投资者报告；15 套投资专家 Lens 与委员会综合规则来自本 skill 的固定文件：`config/lenses/*.json` 与 `scripts/lens_registry.py`。本 skill 不要求用户安装任何外部行情或联网 Skill，也不得为了 Lens 流程安装、调用或转交给外部项目。
 
 ## 本地源码仓库调用
 
@@ -249,16 +249,15 @@ single 或 adversarial 模式不强制套用 committee 固定顺序，应以对�
 
 ## LensEngine 与自然语言调用
 
-LensEngine 是报告生成的核心编排器。LLM 或上层 Agent 可以用自然语言触发能力，再归一化为 `mode`、`lens`、`lenses` 参数调用 `stock_analysis.reporting.generate_report()`；CLI 的 full report 也走同一条 LensEngine 报告路径，并在 evidence `_meta.report_metadata` 中写入结构化结果。
+通用研究和 Lens 研究是两条互斥路径。用户未指定专家时进入通用 Quick、Standard 或 Deep；用户明确指定专家、投资流派、并列框架、对抗视角或投委会时，LensEngine 成为研究方法编排器，此时 `general_mode` 必须为空，且不得套用通用 Deep 报告结构。
 
-- Research 默认使用 committee 模式：根据用户的研究问题，从 15 个内置 lens 中确定性选择最相关且互补的 6 位委员；不得把固定 6 人名单伪装成动态选择。用户显式指定专家时以用户选择为准。
-- 每位入选委员都必须消费同一研究时点的全部结构化指标，再按自身框架解释；Company 至少验证净利率与经营现金转化，Fund 至少验证底层估值、最大回撤、波动、指数约束和费率。消费明细与一致性检查只保存在 JSON/Workspace，用户报告用自然语言和关键数值呈现。
-- committee 模式会自动做 m1/m6 综合深度分析。
-- m1/m6 综合深度分析：m1 做多 lens 交叉验证、趋势一致性分析、异常点识别；m6 做多视角风险汇总、冲突点调和、最终风险评分。
-- single 模式：单一 lens 深度模式。自然语言例子：“用巴菲特模式分析 茅台”“按段永平视角看 腾讯”。可识别 `buffett`、`巴菲特`、`巴菲特模式` 等常见写法。
-- committee 模式：多 lens 综合模式，也是默认模式。自然语言例子：“用投委会模式分析 NVDA”“多专家综合复盘今天市场”。
-- adversarial 模式：两个 lens 对抗辩论模式。自然语言例子：“用 adversarial 模式让巴菲特和芒格辩论 腾讯”。必须提供两个 lens。
-- committee 失败时降级为 single：优先使用用户给出的第一个有效 lens；没有有效 lens 时降级到 `buffett`。降级原因必须写入报告 metadata 的 `fallback` 字段。
+- single：单一 Lens 完整研究。自然语言例子：“用巴菲特模式分析茅台”“按段永平视角看腾讯”。
+- parallel：两个或以上 Lens 分别按自身协议研究，最后只汇总共同结论与关键分歧。
+- adversarial：恰好两个 Lens 围绕实质冲突定向补证并修订判断。用户侧输出整理后的对抗研究报告，不展示辩论轮次或角色聊天。
+- committee：只有用户明确要求“投委会”“全部专家”或等价表达时启用；可按问题选择相关 Lens，明确要求全部专家时才启用全部 15 套框架。
+- “用巴菲特视角快速分析”仍走 Buffett Lens，只收紧篇幅和搜索预算；“用巴菲特视角深度分析”表示完整执行 Buffett Lens，不进入通用 Deep。
+- 中文名、英文名、常用别名和框架关键词必须归一到稳定 Lens；低置信度时用自然语言说明采用的框架，不展示候选 JSON。
+- 每个 Lens 必须拥有自己的核心问题、证据需求、估值方法、风险焦点、反证规则和报告骨架。Lens 不是报告语气，也不能以专家权威替代事实证据。
 
 ## 内置投资专家 lens
 
@@ -292,17 +291,17 @@ A股个股或 A股持仓若有 `STOCK.financial_snapshot` / `_meta.stock_financi
 
 ### 专家视角触发
 
-- 用户没有明确指定专家时，默认使用 committee 模式，不主动询问要不要选择专家。
+- 用户没有明确指定专家时，默认使用对应场景的 Standard 通用报告，不主动询问要不要选择专家或是否升级深度。
 - 用户明确说“用巴菲特/芒格/彼得·林奇/索罗斯/段永平/张坤/冯柳等风格”“按 buffett/munger/lens 风格”“以某投资专家视角”等，切换为 single 模式。
 - 识别到单个专家时，单专家视角不输出机构化综合判断，也不输出“交易计划草案”“风险管理意见”“组合经理最终意见”等委员会小节。
-- 单专家报告最后章节标题必须按中文名写成 `## {专家中文名}持仓建议与风险提示`；若没有完整持仓信息，可写成 `## {专家中文名}市场建议与风险提示`，但不得伪造持仓。
+- 单专家报告完全由该 Lens 的报告契约决定，但必须自然表达框架结论、核心证据、框架内风险与结论失效条件；不得伪造用户持仓。
 - 不得模仿身份声明或虚构专家发言：不要写“我是巴菲特本人”“芒格会说”，也不要编造历史人物未说过的话；可以写“按巴菲特框架看”“以芒格式反向检查”。
 - 专家框架不能覆盖数据纪律：所有结论仍必须回到 evidence、行情、成交、资金流、财务或公开信息。`research` 中没有达到发布门槛的问题进入 `unpublished_questions`，不得生成“证据不足，维持观察”等替代结论；其他入口继续遵守各自的缺口展示契约。
-- 若用户同时指定多个专家，除非明确要求 `all` 或“多专家综合”，否则只执行用户最后明确指定的一个专家；明确要求 `all`、`committee` 或“多专家综合”时，使用 `scripts/lens_registry.py` 的默认 committee 成员和各 JSON 的 `committee_role`、`committee_synthesis_rules` 做压缩综合，不输出逐轮辩论过程。
+- 用户明确要求多个专家“分别分析”时使用 parallel；要求“对抗、辩论、互相质疑”时使用 adversarial；明确要求 `all`、`committee` 或“全部专家”时使用 committee。任何模式都不输出逐轮辩论过程。
 
 ## Trading 入口与持仓完整性
 
-市场复盘统一走 trading 入口：先判断用户意图是否是行情分析，再判断盘前、盘中或盘后，任务调度层控制报告结构；LensEngine 控制分析方法，用户未指定专家或对抗辩论时默认使用 committee 模式。
+市场复盘统一走 trading 入口：先判断用户意图是否是行情分析，再判断盘前、盘中或盘后，任务调度层控制报告结构；用户未指定专家时使用通用市场报告，显式指定专家或对抗框架时才进入 LensEngine。
 
 持仓来源优先级固定为：
 

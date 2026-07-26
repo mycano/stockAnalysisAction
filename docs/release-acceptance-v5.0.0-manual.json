@@ -1,0 +1,107 @@
+{
+  "company-600519.quick": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "结论、经营质量、估值锚、核心风险与观察条件均可直接用于快速判断。"
+  },
+  "company-600519.standard": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "商业模式、竞争格局、财务质量、估值、催化剂、风险与分持仓状态行动框架完整。"
+  },
+  "company-600519.deep": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "已核对多期历史、三家同业、两类估值校验、量化三情景与反方证伪条件。"
+  },
+  "company-300750.quick": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "结论聚焦成长制造的盈利、现金流、资本开支与估值敏感性，风险表达具体。"
+  },
+  "company-300750.standard": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "行业周期、技术竞争、经营杠杆、资产负债表、估值和行动条件形成完整链路。"
+  },
+  "company-300750.deep": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "历史阶段、同业比较、多模型估值、三情景及反方审查均有实质内容。"
+  },
+  "active-fund-110011.quick": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "基金定位、已披露持仓、收益回撤、费用、适合与不适合人群表达清晰。"
+  },
+  "active-fund-110011.standard": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "明确区分披露持仓与实时暴露，并覆盖管理能力验证、组合角色和退出条件。"
+  },
+  "active-fund-110011.deep": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "持仓穿透、风格漂移、管理阶段归因、容量与压力测试均按主动基金框架呈现。"
+  },
+  "etf-512480.quick": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "产品定位、指数暴露、流动性、费用、风险与组合角色适合快速配置判断。"
+  },
+  "etf-512480.standard": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "指数策略、收益来源、集中度、跟踪质量、市场适配与申购退出条件完整。"
+  },
+  "etf-512480.deep": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "底层暴露、规则风险、重叠度、跟踪差异与极端情景压力测试具备产品针对性。"
+  },
+  "market-a.quick": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "指数、领涨领跌、成交、驱动和下一交易日观察形成简洁市场判断。"
+  },
+  "market-a.standard": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "市场宽度、风格行业、流动性、驱动、情绪、情景与后续信号结构完整。"
+  },
+  "market-a.deep": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "宏观、跨资产、盈利预期、估值风险溢价与多情景传导链已人工抽查。"
+  },
+  "earnings-600519.quick": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "业绩方向、收入利润变化、关键正负变化及对投资逻辑影响表达清晰。"
+  },
+  "earnings-600519.standard": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "期间口径、利润率、现金流、资产负债表、指引、预期差和估值影响已核对。"
+  },
+  "earnings-600519.deep": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "多期趋势、会计质量、一次性项目、同业验证、预期修正与情景估值完整。"
+  },
+  "move-300750.quick": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "涨跌、公告核验状态、可能解释与短期风险严格区分事实和假设。"
+  },
+  "move-300750.standard": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "事件时间线、已确认原因、高相关非因果解释、基本面影响和验证信号清晰分层。"
+  },
+  "move-300750.deep": {
+    "passed": true,
+    "reviewer": "Codex 投资者视角复核",
+    "notes": "公告与新闻核验、历史异动、资金结构、反事实分析及未来证伪信号均已抽查。"
+  }
+}

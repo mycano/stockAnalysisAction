@@ -308,7 +308,7 @@
     "topology_draw_on": true
   },
   "artifact": {
-    "bytes": 375871,
+    "bytes": 386060,
     "encoder": "ffmpeg/gif-palette",
     "format": "gif",
     "mime_type": "image/gif",
@@ -327,7 +327,7 @@
       "r_frame_rate": "20/1",
       "width": 960
     },
-    "sha256": "85164e2327f523daff7ed21b8e442dcfc823d035572f6ec3e3b646a9b95e20e6",
+    "sha256": "c52fa8a2fec61c1013c479e03f35dde9c3f5d97fdd9cc13e4a7c5ba5013d1d68",
     "source_frame_count": 115
   },
   "dry_run": false,
@@ -357,14 +357,14 @@
     "adjacent_duplicate_count": 0,
     "all_frames_unique": true,
     "delta_quality": {
-      "adjacent_max": 0.0017845490196078432,
-      "adjacent_median": 0.0006700470588235295,
+      "adjacent_max": 0.001857686274509804,
+      "adjacent_median": 0.0006683254901960784,
       "adjacent_min": 6.547607843137255e-06,
       "adjacent_p95": 0.0007820901960784314,
       "changed_area_method": "accumulated adjacent luma delta greater than 2 percent",
-      "changed_area_ratio": 0.03876933333333333,
+      "changed_area_ratio": 0.039273725490196074,
       "metric": "normalized-luma-mean-absolute-difference",
-      "seam": 0.00017747450980392155,
+      "seam": 0.00018559176470588234,
       "seam_within_adjacent_p95": true
     },
     "embedded_loop_count": 0,
@@ -373,13 +373,13 @@
       "adjacent_duplicate_pairs": [],
       "algorithm": "framemd5",
       "all_frames_unique": true,
-      "first_frame_hash": "34dcb19119b26508b078b402608fa78c",
+      "first_frame_hash": "94cf3787f928209e4ae2590758f7a974",
       "frame_count": 115,
       "intentional_reset_boundary_opacity": 1.0,
       "intentional_reset_boundary_repeat_count": 0,
       "intentional_reset_boundary_repeat_evidence": [],
       "intentional_reset_boundary_repeat_frame": 110,
-      "last_frame_hash": "ef33a89f466f3de9781caacc4443e32b",
+      "last_frame_hash": "fd278ba8436fec58c5953d02b99d204e",
       "minimum_unique_frame_count": 75,
       "opening_construction_and_reset_tail_globally_distinct": true,
       "repeat_scope": [
@@ -393,10 +393,10 @@
       "repeats_confined_to_permitted_scope": true,
       "unique_frame_count": 115
     },
-    "first_frame_sha256": "dc2de6b39953a9f0c80b9b3959e8e0233d14ae1500f610136ddf598ee69356fb",
+    "first_frame_sha256": "e182151bcced971305e80d8e784d6d79c0804bb5b1ddf26557bd91ec4b69285f",
     "intentional_reset_boundary_repeat_count": 0,
     "intentional_reset_boundary_repeat_evidence": [],
-    "last_frame_sha256": "c1359c92eeb2c62ad16ea858e266438513cb07924348dc024ba7f1b57aebb943",
+    "last_frame_sha256": "0329aea50781375ee31ecbdcd331789b7305f96a93e9cac56a67f3c06dd79848",
     "minimum_unique_frame_count": 75,
     "opening_construction_and_reset_tail_globally_distinct": true,
     "playback": "embedded-infinite",
@@ -405,13 +405,13 @@
       "adjacent_duplicate_pairs": [],
       "algorithm": "sha256",
       "all_frames_unique": true,
-      "first_frame_hash": "dc2de6b39953a9f0c80b9b3959e8e0233d14ae1500f610136ddf598ee69356fb",
+      "first_frame_hash": "e182151bcced971305e80d8e784d6d79c0804bb5b1ddf26557bd91ec4b69285f",
       "frame_count": 115,
       "intentional_reset_boundary_opacity": 1.0,
       "intentional_reset_boundary_repeat_count": 0,
       "intentional_reset_boundary_repeat_evidence": [],
       "intentional_reset_boundary_repeat_frame": 110,
-      "last_frame_hash": "c1359c92eeb2c62ad16ea858e266438513cb07924348dc024ba7f1b57aebb943",
+      "last_frame_hash": "0329aea50781375ee31ecbdcd331789b7305f96a93e9cac56a67f3c06dd79848",
       "minimum_unique_frame_count": 75,
       "opening_construction_and_reset_tail_globally_distinct": true,
       "repeat_scope": [
@@ -2217,8 +2217,8 @@
     "encoders": [
       "gif"
     ],
-    "ffmpeg": "/var/folders/16/lp1w_22s42l3mjj72hpbk9th0000gn/T/tmp.81H30GBRlM/ffmpeg",
-    "ffprobe": "/var/folders/16/lp1w_22s42l3mjj72hpbk9th0000gn/T/tmp.81H30GBRlM/ffprobe",
+    "ffmpeg": "/Users/yjw/.codex/skills/fireworks-tech-graph/node_modules/ffmpeg-static/ffmpeg",
+    "ffprobe": "/Users/yjw/.codex/skills/fireworks-tech-graph/node_modules/ffprobe-static/bin/darwin/arm64/ffprobe",
     "format": {
       "gif": true
     },
@@ -2360,12 +2360,12 @@
     }
   },
   "source_integrity": {
-    "sha256": "016445a9772f6978771190d91fe4a1834ee74027562541bd61c18270be3deaca",
-    "sha256_after": "016445a9772f6978771190d91fe4a1834ee74027562541bd61c18270be3deaca",
-    "sha256_before": "016445a9772f6978771190d91fe4a1834ee74027562541bd61c18270be3deaca",
+    "sha256": "4d333b4370edcc7319a84a1b66e3340a34aa7cd6b895efbeb11d27d066b3973d",
+    "sha256_after": "4d333b4370edcc7319a84a1b66e3340a34aa7cd6b895efbeb11d27d066b3973d",
+    "sha256_before": "4d333b4370edcc7319a84a1b66e3340a34aa7cd6b895efbeb11d27d066b3973d",
     "unchanged": true
   },
-  "source_sha256": "016445a9772f6978771190d91fe4a1834ee74027562541bd61c18270be3deaca",
+  "source_sha256": "4d333b4370edcc7319a84a1b66e3340a34aa7cd6b895efbeb11d27d066b3973d",
   "style_contract": {
     "approval_recorded_on": "2026-07-16",
     "scope": "signature-speed-path-geometry-and-construction-schedule",

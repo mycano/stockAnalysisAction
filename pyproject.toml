@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "stock-analysis"
-version = "4.17.0"
-description = "Evidence-first research CLI and Agent workflow for global stocks, funds, and portfolios."
+version = "5.0.0"
+description = "Investor-ready research for global stocks, funds, markets, and portfolios."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }

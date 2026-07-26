@@ -308,7 +308,7 @@
     "topology_draw_on": true
   },
   "artifact": {
-    "bytes": 371306,
+    "bytes": 382229,
     "encoder": "ffmpeg/gif-palette",
     "format": "gif",
     "mime_type": "image/gif",
@@ -327,7 +327,7 @@
       "r_frame_rate": "20/1",
       "width": 960
     },
-    "sha256": "b31068da8bc0d857cc4ae9451404121c08d6f76829f40291fbf7eaa9ecf7c723",
+    "sha256": "0284437d5398bc15e96619c3b32d6c7c455059f844cdd12115f69f76e5b8dc2a",
     "source_frame_count": 115
   },
   "dry_run": false,
@@ -357,14 +357,14 @@
     "adjacent_duplicate_count": 0,
     "all_frames_unique": true,
     "delta_quality": {
-      "adjacent_max": 0.0016885372549019608,
-      "adjacent_median": 0.0006683254901960784,
+      "adjacent_max": 0.0018344000000000001,
+      "adjacent_median": 0.0006645411764705882,
       "adjacent_min": 6.547607843137255e-06,
-      "adjacent_p95": 0.0007759058823529412,
+      "adjacent_p95": 0.000780078431372549,
       "changed_area_method": "accumulated adjacent luma delta greater than 2 percent",
-      "changed_area_ratio": 0.03497470588235294,
+      "changed_area_ratio": 0.036145843137254906,
       "metric": "normalized-luma-mean-absolute-difference",
-      "seam": 0.00016807882352941176,
+      "seam": 0.000183998431372549,
       "seam_within_adjacent_p95": true
     },
     "embedded_loop_count": 0,
@@ -373,13 +373,13 @@
       "adjacent_duplicate_pairs": [],
       "algorithm": "framemd5",
       "all_frames_unique": true,
-      "first_frame_hash": "bc011406af36556a8c7423da58fefa31",
+      "first_frame_hash": "d647d971cbe4e88ccce2da58b42df7bf",
       "frame_count": 115,
       "intentional_reset_boundary_opacity": 1.0,
       "intentional_reset_boundary_repeat_count": 0,
       "intentional_reset_boundary_repeat_evidence": [],
       "intentional_reset_boundary_repeat_frame": 110,
-      "last_frame_hash": "ac69d1851898f5157988c8a964b59c98",
+      "last_frame_hash": "96af739224966d52a7147d0183d2ee21",
       "minimum_unique_frame_count": 75,
       "opening_construction_and_reset_tail_globally_distinct": true,
       "repeat_scope": [
@@ -393,10 +393,10 @@
       "repeats_confined_to_permitted_scope": true,
       "unique_frame_count": 115
     },
-    "first_frame_sha256": "d5ca8a0e1a361ce471a16c2a4749b57eddc21391cb63f104f61786e7bcc684c0",
+    "first_frame_sha256": "edb97657799738b95cf9f853c8a235a12cb02a1085b6e3df18a1e7253e6f43b4",
     "intentional_reset_boundary_repeat_count": 0,
     "intentional_reset_boundary_repeat_evidence": [],
-    "last_frame_sha256": "16de986fc40958369a3dd7397174939b9b09010a3e8f013ee62d09bbe90d8870",
+    "last_frame_sha256": "acf619dea889b1b89c7e328607559d4e9beb5b2116587c268e6b63feb77356a5",
     "minimum_unique_frame_count": 75,
     "opening_construction_and_reset_tail_globally_distinct": true,
     "playback": "embedded-infinite",
@@ -405,13 +405,13 @@
       "adjacent_duplicate_pairs": [],
       "algorithm": "sha256",
       "all_frames_unique": true,
-      "first_frame_hash": "d5ca8a0e1a361ce471a16c2a4749b57eddc21391cb63f104f61786e7bcc684c0",
+      "first_frame_hash": "edb97657799738b95cf9f853c8a235a12cb02a1085b6e3df18a1e7253e6f43b4",
       "frame_count": 115,
       "intentional_reset_boundary_opacity": 1.0,
       "intentional_reset_boundary_repeat_count": 0,
       "intentional_reset_boundary_repeat_evidence": [],
       "intentional_reset_boundary_repeat_frame": 110,
-      "last_frame_hash": "16de986fc40958369a3dd7397174939b9b09010a3e8f013ee62d09bbe90d8870",
+      "last_frame_hash": "acf619dea889b1b89c7e328607559d4e9beb5b2116587c268e6b63feb77356a5",
       "minimum_unique_frame_count": 75,
       "opening_construction_and_reset_tail_globally_distinct": true,
       "repeat_scope": [
@@ -1793,10 +1793,10 @@
           "geometry_rear_extent": 7,
           "initial_path_distance": 29,
           "initial_point": {
-            "x": 472,
-            "y": 229
+            "x": 467,
+            "y": 224.00003051757812
           },
-          "initial_tangent_rotation": 90,
+          "initial_tangent_rotation": 180,
           "marker_free": true,
           "path_advance_per_rendered_frame": 6,
           "path_length": 432,
@@ -2217,8 +2217,8 @@
     "encoders": [
       "gif"
     ],
-    "ffmpeg": "/var/folders/16/lp1w_22s42l3mjj72hpbk9th0000gn/T/tmp.81H30GBRlM/ffmpeg",
-    "ffprobe": "/var/folders/16/lp1w_22s42l3mjj72hpbk9th0000gn/T/tmp.81H30GBRlM/ffprobe",
+    "ffmpeg": "/Users/yjw/.codex/skills/fireworks-tech-graph/node_modules/ffmpeg-static/ffmpeg",
+    "ffprobe": "/Users/yjw/.codex/skills/fireworks-tech-graph/node_modules/ffprobe-static/bin/darwin/arm64/ffprobe",
     "format": {
       "gif": true
     },
@@ -2360,12 +2360,12 @@
     }
   },
   "source_integrity": {
-    "sha256": "80ce3d1b4ccc25a66048d4f575b512319ccbc4541448aacfd9f5df11bd9e213a",
-    "sha256_after": "80ce3d1b4ccc25a66048d4f575b512319ccbc4541448aacfd9f5df11bd9e213a",
-    "sha256_before": "80ce3d1b4ccc25a66048d4f575b512319ccbc4541448aacfd9f5df11bd9e213a",
+    "sha256": "6a91527df5b625bca5e80b936cfc7636e05701d7a7c630962f9d1e345ad4bee5",
+    "sha256_after": "6a91527df5b625bca5e80b936cfc7636e05701d7a7c630962f9d1e345ad4bee5",
+    "sha256_before": "6a91527df5b625bca5e80b936cfc7636e05701d7a7c630962f9d1e345ad4bee5",
     "unchanged": true
   },
-  "source_sha256": "80ce3d1b4ccc25a66048d4f575b512319ccbc4541448aacfd9f5df11bd9e213a",
+  "source_sha256": "6a91527df5b625bca5e80b936cfc7636e05701d7a7c630962f9d1e345ad4bee5",
   "style_contract": {
     "approval_recorded_on": "2026-07-16",
     "scope": "signature-speed-path-geometry-and-construction-schedule",

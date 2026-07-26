@@ -97,15 +97,10 @@ def test_catalog_preserves_p0_routing_and_output_safety_contracts():
         "multi-session",
         "event-window",
     }
-    expected_sections = [
-        "confirmed_trigger",
-        "plausibly_related",
-        "market_wide_factor",
-        "unsupported_speculation",
-        "unknown",
-    ]
     for workflow in move["workflows"].values():
-        assert workflow["output_contract"]["required_sections"] == expected_sections
+        assert workflow["output_contract"]["required_artifacts"] == []
+        assert "用户可读" in workflow["output_contract"]["description"] or "事件窗口" in workflow["output_contract"]["description"]
+        assert "required_sections" not in workflow["output_contract"]
 
     screen = commands["screen"]
     assert screen["defaults"]["mode"] == "explore"
@@ -155,8 +150,10 @@ def test_generated_entrypoints_have_identical_managed_metadata():
             assert f'x-stock-analysis-command: "{command_id}"' in text
             assert f'x-stock-analysis-catalog-hash: "{expected_hash}"' in text
             assert f'command_id: "stock-analysis.{command_id}"' in text
-            assert "stock-analysis agent route --request" in text
             assert "stock-analysis agent run --request" in text
+            assert "stock-analysis agent route --request" not in text
+            assert "向用户展示 `RouteDecision`" not in text
+            assert "用户确认执行上下文" not in text
             assert "agent run --input" not in text
 
 

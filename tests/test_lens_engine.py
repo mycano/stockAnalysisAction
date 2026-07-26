@@ -1,4 +1,4 @@
-from stock_analysis.lens_engine import LensContext, LensEngine
+from stock_analysis.lens_engine import LensContext, LensEngine, resolve_lens_ids
 
 
 def _sample_evidence():
@@ -251,6 +251,18 @@ def test_lens_engine_accepts_natural_language_aliases():
     assert single.lenses == ("buffett",)
     assert single.lens_labels["buffett"] == "巴菲特"
     assert debate.lenses == ("buffett", "munger")
+
+
+def test_parallel_mode_and_public_alias_resolution():
+    assert resolve_lens_ids(["巴菲特视角", "索罗斯"]) == ("buffett", "soros")
+
+    context = LensEngine(
+        mode="parallel",
+        lenses=("巴菲特视角", "索罗斯"),
+    ).build_context(_sample_evidence())
+
+    assert context.mode == "parallel"
+    assert context.lenses == ("buffett", "soros")
 
 
 def test_adversarial_mode_requires_two_lenses_and_records_debate_notes():

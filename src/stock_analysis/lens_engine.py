@@ -21,7 +21,7 @@ DEFAULT_COMMITTEE_MEMBERS = (
     "dalio",
 )
 MODULES = ("M1", "M2", "M3", "M4", "M5", "M6")
-VALID_MODES = {"single", "committee", "adversarial"}
+VALID_MODES = {"single", "parallel", "committee", "adversarial"}
 
 
 @dataclass(frozen=True)
@@ -63,6 +63,8 @@ class LensEngine:
             raise ValueError("single mode requires lens")
         if mode == "adversarial" and len(requested_lenses) != 2:
             raise ValueError("adversarial mode requires exactly two lenses")
+        if mode == "parallel" and len(requested_lenses) < 2:
+            raise ValueError("parallel mode requires at least two lenses")
         if mode == "single" and len(requested_lenses) != 1:
             raise ValueError("single mode requires exactly one lens")
 
@@ -184,6 +186,27 @@ def _load_lens_definitions(directory: Path) -> dict[str, dict[str, Any]]:
     if not definitions:
         raise FileNotFoundError(f"no lens definitions found in {directory}")
     return definitions
+
+
+def load_lens_definitions(directory: str | Path | None = None) -> dict[str, dict[str, Any]]:
+    """Load all 15 packaged investment-framework definitions."""
+
+    path = Path(directory) if directory is not None else _default_lenses_dir()
+    return _load_lens_definitions(path)
+
+
+def resolve_lens_ids(
+    values: tuple[str, ...] | list[str],
+    directory: str | Path | None = None,
+) -> tuple[str, ...]:
+    """Resolve Chinese names and common display aliases to canonical Lens IDs."""
+
+    definitions = load_lens_definitions(directory)
+    resolved = tuple(_resolve_lens_id(value, definitions) for value in values)
+    unknown = [lens_id for lens_id in resolved if lens_id not in definitions]
+    if unknown:
+        raise KeyError(f"unknown lens: {', '.join(unknown)}")
+    return resolved
 
 
 def _evidence_to_dict(evidence: Any) -> dict[str, Any]:

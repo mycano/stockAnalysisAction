@@ -4,12 +4,12 @@ description: "按证据等级解释单日、多日或事件窗口的价格异动
 managed_by: "stock-analysis"
 schema_version: "2.0"
 command_id: "stock-analysis.move"
-catalog_hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+catalog_hash: "sha256:d9cb45c6da32283c234898cc2e843baa08bb49c487b4c48fbcf62ed1e879a8ac"
 host_target: "codex-prompt"
 x-stock-analysis-managed: true
 x-stock-analysis-schema: "agent-entrypoint/v2"
 x-stock-analysis-command: "move"
-x-stock-analysis-catalog-hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca476582f168c404473fc53b64de0a"
+x-stock-analysis-catalog-hash: "sha256:d9cb45c6da32283c234898cc2e843baa08bb49c487b4c48fbcf62ed1e879a8ac"
 ---
 
 # /move
@@ -18,30 +18,29 @@ x-stock-analysis-catalog-hash: "sha256:6d9ed4f19db8773424bf761842e60c3812ca47658
 
 ## 协议
 
-你是 `HostRequest` 层。把用户意图整理为结构化对象，Python Router 负责验证、默认值、
-重定向、安全门禁和确定性工作流选择。不得自行调用旧业务命令，也不得更改 Evidence、
-Claim、Finding、缺失状态或阻断结果。
+把用户意图整理为内部结构化请求，交由 Python Router 静默完成验证、默认值、重定向、
+安全门禁和确定性工作流选择。不得自行调用旧业务命令，也不得更改证据、研究命题、
+缺失状态或阻断结果。
 
-最小请求：
+内部最小请求：
 
 ```json
 {"schema_version":"2.0","command":"move","arguments":{"asset":"<asset>"}}
 ```
 
-先以独立 argv 元素调用路由并向用户展示 `RouteDecision`：
+以独立 argv 元素直接运行：
 
 ```text
-stock-analysis agent route --request <HostRequest JSON>
-```
-
-用户确认执行上下文后，以独立 argv 元素运行：
-
-```text
-stock-analysis agent run --request <HostRequest JSON>
+stock-analysis agent run --request <内部请求 JSON>
 ```
 
 不得拼接 Shell 命令字符串，不得把用户文本直接插入 Shell，也不得在正式链路使用
-`--input`。保留 Router 返回的 `reason_codes`、`output_contract` 和全部缺失/部分状态。
+`--input`。
+
+默认用户界面只能展示自然语言研究结果与简短的数据边界说明。路由对象、请求 JSON、
+工作流名、原因码、证据对象、审计对象、文件路径、内部字段和诊断日志仅供内部执行，
+不得展示或要求用户确认。只有标的真实歧义、互相冲突的要求、不可逆操作，或缺少决定
+研究对象的核心参数时，才用自然语言询问会实质改变结果的问题。
 
 ## 命令边界
 
@@ -49,4 +48,4 @@ stock-analysis agent run --request <HostRequest JSON>
 
 事件窗口只表示分析边界；除非一手证据证实，不得宣称事件导致价格变化。
 
-按固定五类报告异动证据。
+按用户可读的异动报告结构区分已确认原因、高相关解释和未知项。

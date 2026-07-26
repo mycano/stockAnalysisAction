@@ -171,7 +171,9 @@ def _resolve_lens_mode(
         return mode
     if lens:
         return "single"
-    return "committee"
+    if lenses:
+        return "parallel" if len(lenses) > 1 else "single"
+    return "general"
 
 
 def _holding_quantity(row: dict[str, Any], buy_price: float | None) -> float:

@@ -1,54 +1,50 @@
 # Assets
 
-Screenshots and share cards used by the README and [report directory](../reports/).
+README visuals, social cards, and release media.
 
-## Screenshot Sets
+## v5.0 investor-research visuals
 
-| Set | Files |
+| Asset | Purpose |
 |---|---|
-| Global market recap | `全球市场复盘_1.png` to `全球市场复盘_3.png` |
-| Global recap, Buffett lens | `全球市场复盘（巴菲特）_1.png` to `全球市场复盘（巴菲特）_3.png` |
-| Global recap, Simons lens | `全球市场西蒙斯视角行情分析_1.png` to `全球市场西蒙斯视角行情分析_5.png` |
-| Moutai, Buffett lens | `贵州茅台个股分析（巴菲特）_1.png` to `贵州茅台个股分析（巴菲特）_4.png` |
-| Moutai, Simons lens | `贵州茅台个股分析（西蒙斯）_1.png` to `贵州茅台个股分析（西蒙斯）_4.png` |
-| Semiconductor fund profile | `半导体基金分析_1.png` to `半导体基金分析_3.png` |
+| `investor-research-architecture-en.gif` | Animated English investor-delivery architecture |
+| `investor-research-architecture-zh-CN.gif` | Animated Simplified Chinese investor-delivery architecture |
+| `diagrams/investor-research-architecture-*.png` | Static 1920px architecture exports |
+| `diagrams/investor-research-flow-*.png` | Static evidence-first research flows |
+| `diagrams/*.source.json` | Fireworks semantic source specifications |
+| `diagrams/*.svg` | Validated semantic SVGs |
+| `diagrams/*.layout.json` | Geometry and composition validation reports |
+| `diagrams/*.motion.json` | Motion-contract validation reports |
+| `demo-video-preview-en.png` | English video poster |
+| `demo-video-preview-zh-CN.png` | Simplified Chinese video poster |
 
-## Share Cards
+The architecture expresses the v5.0 investor journey:
 
-- `social-preview.png`: GitHub repository social preview.
-- `share-cn-1.png`: Chinese social-share card.
-- `share-x-1.png`, `share-x-2.png`: short-form X/Twitter share cards.
-
-## Product Architecture and Demo
-
-- `investor-research-architecture-en.gif`: English v4.17 animation from investor question through `HostRequest → ResolvedRequest → Workflow` to an auditable memo.
-- `investor-research-architecture-zh-CN.gif`: Simplified Chinese v4.17 animation of the same deterministic research path.
-- `diagrams/investor-research-architecture-*.source.json`: semantic inputs for the English and Simplified Chinese architecture diagrams.
-- `diagrams/investor-research-architecture-*.svg`: validated semantic SVG sources used to render the GIFs.
-- `diagrams/investor-research-architecture-*.layout.json`: geometry and layout validation reports.
-- `diagrams/investor-research-architecture-*.motion.json`: GIF motion-contract validation reports.
-- `demo-video-preview-en.png`: English poster linking to the 72-second Remotion demo.
-- `demo-video-preview-zh-CN.png`: Simplified Chinese poster linking to the 72-second Remotion demo.
-
-The architecture animations use the `fireworks-tech-graph` `agent` template and
-the `agent-orchestration` motion contract. They keep the host, Router, workflow,
-evidence-boundary, history, and output-gate roles visible while preserving one
-validated nine-route topology. To reproduce one locale, replace the
-placeholders below with the installed skill path and the desired locale (`en` or
-`zh-CN`):
-
-```bash
-python3 <fireworks-skill-root>/scripts/generate-from-template.py agent \
-  assets/diagrams/investor-research-architecture-<locale>.svg \
-  "$(jq -c . assets/diagrams/investor-research-architecture-<locale>.source.json)" \
-  --layout-report assets/diagrams/investor-research-architecture-<locale>.layout.json
-
-python3 <fireworks-skill-root>/scripts/fireworks.py animate \
-  assets/diagrams/investor-research-architecture-<locale>.svg \
-  assets/investor-research-architecture-<locale>.gif \
-  --preset agent-orchestration --duration 5.75 --fps 20 --width 960 \
-  --report assets/diagrams/investor-research-architecture-<locale>.motion.json
+```text
+investor question
+→ asset scene and investment framework
+→ structured and public-web evidence
+→ source/time validation
+→ financial models, 15 Lenses, and risk analysis
+→ evidence-backed view
+→ actionable research report
 ```
 
-The generator and animator require Python 3, Node.js 18+, Chrome/Chromium,
-FFmpeg/FFprobe, `jq`, and the runtime dependencies bundled with the skill.
+All diagram sources were rendered with the `fireworks-tech-graph` skill. Static
+exports preserve CJK text through browser-native SVG rendering; animated
+architecture files use the validated `agent-orchestration` motion contract.
+
+## Demo video
+
+Editable Remotion source lives in [`../promo/demo-video`](../promo/demo-video/).
+Final 1080p outputs:
+
+- `../promo/demo-video/out/stock-analysis-demo-en.mp4`
+- `../promo/demo-video/out/stock-analysis-demo-zh-CN.mp4`
+
+## Legacy screenshots and share cards
+
+- `social-preview.png`: GitHub repository social preview.
+- `share-cn-1.png`: Chinese social card.
+- `share-x-1.png`, `share-x-2.png`: short-form social cards.
+- Existing market, stock-Lens, and fund screenshot sets remain for historical
+  examples; the v5.0 README uses the architecture, flow, and video assets above.

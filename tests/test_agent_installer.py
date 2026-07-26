@@ -40,7 +40,7 @@ def _project(tmp_path: Path) -> Path:
     root = tmp_path / "project"
     root.mkdir()
     root.joinpath("pyproject.toml").write_text(
-        '[project]\nname = "stock-analysis"\nversion = "4.17.0"\n',
+        '[project]\nname = "stock-analysis"\nversion = "5.0.0"\n',
         encoding="utf-8",
     )
     catalog = {
@@ -96,9 +96,6 @@ def _project(tmp_path: Path) -> Path:
             path = root / directory / f"{entrypoint_id}.md"
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text, encoding="utf-8")
-    auxiliary = root / "codex-skills" / "primary-evidence-reach" / "SKILL.md"
-    auxiliary.parent.mkdir(parents=True)
-    auxiliary.write_text("# Auxiliary Skill\n", encoding="utf-8")
     operational = _generated_text("data-diagnose", "data-diagnose", catalog_hash)
     operational_skill = root / "codex-skills" / "data-diagnose" / "SKILL.md"
     operational_skill.parent.mkdir(parents=True)
@@ -128,14 +125,14 @@ def test_install_all_uses_one_manifest_and_installs_safe_names_and_short_aliases
 
     assert actions
     assert (tmp_path / "codex/skills/stock-analysis-market/SKILL.md").is_file()
-    assert (tmp_path / "codex/skills/stock-analysis-primary-evidence-reach/SKILL.md").is_file()
+    assert not (tmp_path / "codex/skills/stock-analysis-primary-evidence-reach").exists()
     assert (tmp_path / "codex/prompts/stock-analysis-market.md").is_file()
     assert (tmp_path / "codex/prompts/market.md").is_file()
     assert (tmp_path / "claude/commands/stock-analysis-market.md").is_file()
     assert (tmp_path / "claude/commands/market.md").is_file()
     manifest = _manifest(instance)
     assert manifest["managed_by"] == "stock-analysis-agent-installer"
-    assert manifest["package_version"] == "4.17.0"
+    assert manifest["package_version"] == "5.0.0"
     assert manifest["installed_at"].endswith("Z")
     assert manifest["updated_at"].endswith("Z")
     assert set(manifest["targets"]) == {"codex", "claude"}

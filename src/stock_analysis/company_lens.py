@@ -319,9 +319,10 @@ def build_company_lens_opinions(
     snapshot: dict[str, Any],
     lenses: tuple[str, ...] | list[str] | None = None,
     research_question: str | None = None,
+    mode: str = "committee",
 ) -> dict[str, dict[str, Any]]:
     selected = tuple(lenses or select_company_committee(research_question))
-    engine = LensEngine(mode="committee", lenses=selected)
+    engine = LensEngine(mode=mode, lenses=selected)
     evidence = snapshot["evidence"]
     question_modules = set(
         relevant_research_modules(research_question, asset_type="company")
@@ -337,7 +338,7 @@ def build_company_lens_opinions(
         required = COMPANY_LENS_MODULES.get(lens_id, tuple(evidence["modules"]))
         available = tuple(code for code in required if (evidence["modules"].get(code) or {}).get("available"))
         missing = tuple(code for code in required if code not in available)
-        supporting = _module_evidence_ids(evidence, tuple(evidence["modules"]))
+        supporting = _module_evidence_ids(evidence, required)
         counter = _module_evidence_ids(evidence, ("C7",))
         metric_analyses = [
             {
@@ -349,6 +350,7 @@ def build_company_lens_opinions(
                 "interpretation": interpret_metric_for_lens(lens_id, item["metric"], item.get("value"), module),
             }
             for module, item in metric_items
+            if module in required
         ]
         # Plan section 8: a question is answerable only through claims relevant
         # to modules selected for that question; unrelated claims carry no weight.

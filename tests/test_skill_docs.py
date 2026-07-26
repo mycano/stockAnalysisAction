@@ -43,20 +43,26 @@ def test_package_does_not_require_young_stock_cli_dependency():
     assert "young-stock-cli" not in pyproject
 
 
-def test_jp_kr_primary_evidence_reach_is_installed_without_external_skill_assumption():
+def test_builtin_external_evidence_has_no_external_skill_install_assumption():
     skill = (ROOT / "skills" / "stock-analysis" / "SKILL.md").read_text(encoding="utf-8")
-    reach = (ROOT / "codex-skills" / "primary-evidence-reach" / "SKILL.md").read_text(encoding="utf-8")
     wrapper = (ROOT / "scripts" / "install-agent-entrypoints.sh").read_text(encoding="utf-8")
     installer = (ROOT / "src" / "stock_analysis" / "agent" / "install.py").read_text(
         encoding="utf-8"
     )
+    evidence_dir = ROOT / "src" / "stock_analysis" / "external_evidence"
+    evidence = "\n".join(
+        path.read_text(encoding="utf-8") for path in sorted(evidence_dir.glob("*.py"))
+    )
 
     assert ".T" in skill and ".KS" in skill and ".KQ" in skill
-    assert "primary-evidence-reach" in skill
-    assert "若不存在 `agent-reach`" in reach
-    assert "--primary-evidence-file" in reach
+    assert "内置公开网络补证" in skill
+    assert "Agent-Reach" not in skill
+    assert "DuckDuckGoSearch" in evidence
+    assert "DirectWebReader" in evidence
+    assert "install" not in evidence.lower()
     assert "install_agent_entrypoints.py" in wrapper
     assert 'root / "codex-skills"' in installer
+    assert "primary-evidence-reach" not in installer
 
 
 def test_skill_documents_stock_analysis_entry_contracts():
@@ -67,11 +73,12 @@ def test_skill_documents_stock_analysis_entry_contracts():
         assert "--market stock --symbol" in text
         assert "--market fund --symbol" in text
         assert "确定性" in text
-        assert "浏览器" in text
 
-    assert "不要求用户安装任何外部行情 CLI" in zh_readme
-    assert "M1-M6" in zh_readme
-    assert "内置 lens 与 committee 边界" in zh_readme
+    assert "浏览器" in skill
+    assert "安装主包即可完成基础研究" in zh_readme
+    assert "Agent-Reach" not in zh_readme
+    assert "21 份报告契约" in zh_readme
+    assert "只有用户明确要求时才启用投委会" in zh_readme
 
 
 def test_readmes_list_both_accepted_awesome_quant_repositories_and_agent_entrypoints():
@@ -99,52 +106,46 @@ def test_readmes_list_both_accepted_awesome_quant_repositories_and_agent_entrypo
     assert "意图识别发生在宿主 Agent" in zh_readme
 
 
-def test_skill_documents_lens_engine_natural_language_committee_contract():
+def test_skill_documents_general_and_lens_paths_are_mutually_exclusive():
     skill = (ROOT / "skills" / "stock-analysis" / "SKILL.md").read_text(encoding="utf-8")
     zh_readme = (ROOT / "README.zh-CN.md").read_text(encoding="utf-8")
 
-    for text in (skill, zh_readme):
-        assert "默认使用 committee 模式" in text
-        assert "LensEngine 是报告生成的核心编排器" in text
-        assert "用巴菲特模式分析" in text
-        assert "用 adversarial 模式让巴菲特和芒格辩论" in text
-        assert "M1-M6" in text or "m1/m6 综合深度分析" in text
-        assert "committee 失败时降级为 single" in text
+    assert "通用研究和 Lens 研究是两条互斥路径" in skill
+    assert "用户未指定专家时进入通用 Quick、Standard 或 Deep" in skill
+    assert "用巴菲特模式分析" in skill
+    assert "adversarial" in skill
+    assert "只有用户明确要求" in skill
+    assert "用户没有指定专家框架时" in zh_readme
+    assert "不继承通用 Deep 报告结构" in zh_readme
+    assert "两个 Lens 围绕实质冲突进行对抗补证" in zh_readme
 
 
-def test_skill_documents_fixed_committee_report_structure_and_advice_sections():
+def test_skill_documents_investor_delivery_and_report_contracts():
     skill = (ROOT / "skills" / "stock-analysis" / "SKILL.md").read_text(encoding="utf-8")
     zh_readme = (ROOT / "README.zh-CN.md").read_text(encoding="utf-8")
     output_discipline = (
         ROOT / "skills" / "stock-analysis" / "references" / "output_discipline.md"
     ).read_text(encoding="utf-8")
 
-    for text in (skill, zh_readme, output_discipline):
-        assert "执行摘要" in text
-        assert "大盘指数概览" in text
-        assert "六模块深度复盘" in text
-        assert "现状总结" in text
-        assert "基准跑赢/跑输" in text
-        assert "条件化仓位动作" in text
-        assert "下一交易日观察清单" in text
-        assert "风险提示" in text
-
-    assert "证据暂缺" in skill
-    assert "证据暂缺" in zh_readme
-    assert "不得直接跳过大盘或六模块" in output_discipline
-    assert "证据附录不进入早盘、盘中、午间或盘后正文" in zh_readme
-    assert "正文不输出证据附录" in skill
-    assert "不得输出“证据附录”章节" in output_discipline
+    assert "个股 Standard" in zh_readme
+    assert "基金 Standard" in zh_readme
+    assert "大盘 Standard" in zh_readme
+    assert "先明确问题，再获取与验证证据" in zh_readme
+    assert "核心观点、价值判断、主要风险和行动条件" in zh_readme
+    assert "默认交付完整 Standard 报告" in skill
+    assert "不进入用户对话" in skill
+    assert "报告正文均不得追加“证据附录”章节" in skill
+    assert "不得输出“证据附录”" in output_discipline
+    assert "不让缺口主导报告正文" in output_discipline
 
 
 def test_skill_documents_public_fund_profile_source_contract():
     skill = (ROOT / "skills" / "stock-analysis" / "SKILL.md").read_text(encoding="utf-8")
-    zh_readme = (ROOT / "README.zh-CN.md").read_text(encoding="utf-8")
     data_source_strategy = (
         ROOT / "skills" / "stock-analysis" / "references" / "data-source-strategy.md"
     ).read_text(encoding="utf-8")
 
-    for text in (skill, zh_readme, data_source_strategy):
+    for text in (skill, data_source_strategy):
         assert "pingzhongdata" in text
         assert "长期业绩" in text
         assert "前端费率" in text
@@ -187,11 +188,13 @@ def test_skill_documents_explicit_investment_memory_contract():
         ROOT / "skills" / "stock-analysis" / "references" / "template" / "portfolio-template.md"
     ).read_text(encoding="utf-8")
 
-    for text in (skill, zh_readme, output_discipline, portfolio_template):
+    for text in (skill, output_discipline, portfolio_template):
         assert "投资记忆" in text
         assert "~/.stock_analysis/profile.json" in text
         assert "STOCK_ANALYSIS_PROFILE" in text
         assert "股票代码、买入日期、买入数量或买入金额" in text
+
+    assert "没有完整持仓和风险上下文时，不输出个性化绝对仓位比例" in zh_readme
 
     assert "trading 入口" in skill
     assert "用户完整持仓输入" in output_discipline
@@ -217,13 +220,14 @@ def test_skill_documents_new_user_holdings_override_saved_memory_contract():
         ROOT / "skills" / "stock-analysis" / "references" / "template" / "portfolio-template.md"
     ).read_text(encoding="utf-8")
 
-    for text in (skill, zh_readme, output_discipline, portfolio_template):
+    for text in (skill, output_discipline, portfolio_template):
         assert "新提供的信息与之前保存的投资记忆不一致" in text
         assert "优先以用户新提供的信息为准" in text
         assert "覆盖写入投资记忆" in text
         assert "确认信息完整性后" in text
 
     assert "不完整的新信息不得覆盖已有完整投资记忆" in skill
+    assert "没有完整持仓和风险上下文时" in zh_readme
 
 
 def test_skill_documents_builtin_investor_lens_contract():
@@ -256,19 +260,20 @@ def test_skill_documents_builtin_investor_lens_contract():
     for lens in expected_lenses:
         assert lens in skill
 
-    for text in (skill, zh_readme, output_discipline, portfolio_template):
+    for text in (skill, output_discipline, portfolio_template):
         assert "用户明确提出想用哪位投资专家的风格" in text
         assert "完全以相关专家的视角输出报告" in text
         assert "不得只在结尾追加专家点评" in text
         assert "单专家视角" in text
-        assert "多专家" in text
         assert "不得模仿身份声明或虚构专家发言" in text
 
+    assert "多 Lens 并列研究" in zh_readme
+    assert "不是角色扮演聊天记录" in zh_readme
     assert "15 个 stock-analysis 内置投资专家 lens" in skill
     assert "config/lenses/*.json" in skill
     assert "scripts/lens_registry.py" in skill
-    assert "不要求用户安装任何外部行情 CLI" in skill
+    assert "不要求用户安装任何外部行情或联网 Skill" in skill
     assert "专家名称、英文名、中文名、别名或 lens id" in skill
-    assert "## {专家中文名}持仓建议与风险提示" in skill
-    assert "交易计划草案" in skill
+    assert "框架结论、核心证据、框架内风险与结论失效条件" in skill
+    assert "不输出“交易计划草案”" in skill
     assert "组合经理最终意见" in skill
