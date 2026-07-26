@@ -117,7 +117,7 @@ def test_skill_documents_general_and_lens_paths_are_mutually_exclusive():
     assert "只有用户明确要求" in skill
     assert "用户没有指定专家框架时" in zh_readme
     assert "不继承通用 Deep 报告结构" in zh_readme
-    assert "两个 Lens 围绕实质冲突进行对抗补证" in zh_readme
+    assert "两个框架围绕实质冲突进行对抗补证" in zh_readme
 
 
 def test_skill_documents_investor_delivery_and_report_contracts():
@@ -267,7 +267,7 @@ def test_skill_documents_builtin_investor_lens_contract():
         assert "单专家视角" in text
         assert "不得模仿身份声明或虚构专家发言" in text
 
-    assert "多 Lens 并列研究" in zh_readme
+    assert "多框架并列研究" in zh_readme
     assert "不是角色扮演聊天记录" in zh_readme
     assert "15 个 stock-analysis 内置投资专家 lens" in skill
     assert "config/lenses/*.json" in skill

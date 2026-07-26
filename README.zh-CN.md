@@ -7,7 +7,6 @@
 
 <p align="center">
   <a href="https://github.com/AdvancingTitans/stock-analysis/releases/tag/v5.0.0"><img alt="Release v5.0.0" src="https://img.shields.io/badge/release-v5.0.0-65e6a5"></a>
-  <a href="https://pypi.org/project/stock-analysis/"><img alt="PyPI" src="https://img.shields.io/pypi/v/stock-analysis"></a>
   <a href="https://github.com/AdvancingTitans/stock-analysis/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/AdvancingTitans/stock-analysis/actions/workflows/ci.yml/badge.svg"></a>
   <a href="https://www.python.org/"><img alt="Python 3.9+" src="https://img.shields.io/badge/python-3.9%2B-3776ab"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-f3c677"></a>
