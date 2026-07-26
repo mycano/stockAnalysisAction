@@ -44,21 +44,21 @@
     </style>
   </defs>
   <rect data-graph-role="background" width="960.0" height="700.0" fill="#0f172a"/>
-  <text x="480.0" y="56" text-anchor="middle" class="title">从证据到可支持结论</text>
-  <text x="480.0" y="82" text-anchor="middle" class="subtitle">冻结事实 · 校验命题 · 发布可靠结论 · 其余进入审计层</text>
+  <text x="480.0" y="56" text-anchor="middle" class="title">一个问题，一条可审计研究路径</text>
+  <text x="480.0" y="82" text-anchor="middle" class="subtitle">结构化请求 · 确定性路由 · 校验证据 · 保留每一条边界</text>
   <g id="mission" data-graph-role="container" data-container-id="mission" data-semantic-role="boundary" data-graph-bounds="40,110,920,220">
   <rect data-graph-role="container" x="40.0" y="110.0" width="880.0" height="110.0" rx="16.0" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.20)" stroke-width="1.4" stroke-dasharray="7 6"/>
-  <text x="58.0" y="134.0" class="section">你的投资问题</text>
+  <text x="58.0" y="134.0" class="section">提问与结构化</text>
     <rect id="mission-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="116" width="108" height="30" fill="none" stroke="none"/>
   </g>
   <g id="specialists" data-graph-role="container" data-container-id="specialists" data-semantic-role="boundary" data-graph-bounds="40,270,920,410">
   <rect data-graph-role="container" x="40.0" y="270.0" width="880.0" height="140.0" rx="16.0" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.20)" stroke-width="1.4" stroke-dasharray="7 6"/>
-  <text x="58.0" y="294.0" class="section">证据与命题编译器</text>
+  <text x="58.0" y="294.0" class="section">确定性证据工作流</text>
     <rect id="specialists-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="276" width="134" height="30" fill="none" stroke="none"/>
   </g>
   <g id="delivery" data-graph-role="container" data-container-id="delivery" data-semantic-role="boundary" data-graph-bounds="40,450,920,590">
   <rect data-graph-role="container" x="40.0" y="450.0" width="880.0" height="140.0" rx="16.0" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.20)" stroke-width="1.4" stroke-dasharray="7 6"/>
-  <text x="58.0" y="474.0" class="section">发布输出</text>
+  <text x="58.0" y="474.0" class="section">投资交付</text>
     <rect id="delivery-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="456" width="82" height="30" fill="none" stroke="none"/>
   </g>
   <path id="brief" data-graph-role="edge" data-edge-id="brief" data-source="request" data-target="coordinator" data-edge-kind="flow" data-topic-id="" data-flow="read" data-motion-role="ingress" data-motion-stage="1" data-motion-order="0" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 220,173 L 390,173" fill="none" stroke="#60a5fa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowC)"/>
@@ -78,23 +78,23 @@
   <g id="node-coordinator" data-graph-role="node" data-node-id="coordinator" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="390,146,590,200">
   <rect x="390.0" y="146.0" width="200.0" height="54.0" rx="18.0" fill="rgba(255,255,255,0.12)" stroke="#c084fc" stroke-width="2.0" filter="url(#shadowGlass)"/>
   <rect x="396.0" y="152.0" width="188.0" height="42.0" rx="15.0" fill="none" stroke="#c084fc" stroke-width="1.2" opacity="0.65"/>
-  <text x="490.0" y="164.0" text-anchor="middle" class="node-type">研究路由</text>
-  <text x="490.0" y="179.0" text-anchor="middle" class="node-title" font-size="18.0">选择证据路径</text>
+  <text x="490.0" y="164.0" text-anchor="middle" class="node-type">宿主 · 八命令</text>
+  <text x="490.0" y="179.0" text-anchor="middle" class="node-title" font-size="18.0">HostRequest</text>
   </g>
   <g id="node-research" data-graph-role="node" data-node-id="research" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="80,330,260,390">
   <rect x="80.0" y="330.0" width="180.0" height="60.0" rx="18.0" fill="rgba(255,255,255,0.12)" stroke="#60a5fa" stroke-width="1.8" filter="url(#shadowGlass)"/>
-  <text x="170.0" y="348.0" text-anchor="middle" class="node-type">冻结</text>
-  <text x="170.0" y="366.0" text-anchor="middle" class="node-title" font-size="18.0">校验证据</text>
+  <text x="170.0" y="348.0" text-anchor="middle" class="node-type">路由器</text>
+  <text x="170.0" y="366.0" text-anchor="middle" class="node-title" font-size="17.11">ResolvedRequest</text>
   </g>
   <g id="node-coding" data-graph-role="node" data-node-id="coding" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="390,330,590,390">
   <rect x="390.0" y="330.0" width="200.0" height="60.0" rx="18.0" fill="rgba(255,255,255,0.12)" stroke="#f59e0b" stroke-width="1.8" filter="url(#shadowGlass)"/>
-  <text x="490.0" y="348.0" text-anchor="middle" class="node-type">模型</text>
-  <text x="490.0" y="366.0" text-anchor="middle" class="node-title" font-size="18.0">正向与逆向估值</text>
+  <text x="490.0" y="348.0" text-anchor="middle" class="node-type">工作流</text>
+  <text x="490.0" y="366.0" text-anchor="middle" class="node-title" font-size="18.0">校验证据</text>
   </g>
   <g id="node-review" data-graph-role="node" data-node-id="review" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="700,330,880,390">
   <rect x="700.0" y="330.0" width="180.0" height="60.0" rx="18.0" fill="rgba(255,255,255,0.12)" stroke="#34d399" stroke-width="1.8" filter="url(#shadowGlass)"/>
-  <text x="790.0" y="348.0" text-anchor="middle" class="node-type">命题</text>
-  <text x="790.0" y="366.0" text-anchor="middle" class="node-title" font-size="18.0">划分支持状态</text>
+  <text x="790.0" y="348.0" text-anchor="middle" class="node-type">边界</text>
+  <text x="790.0" y="366.0" text-anchor="middle" class="node-title" font-size="18.0">保留证据缺口</text>
   </g>
   <g id="node-memory" data-graph-role="node" data-node-id="memory" data-semantic-role="cylinder" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="80,510,260,570">
   <ellipse cx="170.0" cy="517.5" rx="45.0" ry="7.5" fill="rgba(255,255,255,0.08)" stroke="#34d399" stroke-width="2.2"/>
@@ -102,68 +102,68 @@
   <ellipse cx="170.0" cy="562.5" rx="45.0" ry="7.5" fill="rgba(255,255,255,0.08)" stroke="#34d399" stroke-width="2.2"/>
   <ellipse cx="170.0" cy="532.8" rx="45.0" ry="7.5" fill="none" stroke="#34d399" stroke-opacity="0.45" stroke-width="1.2"/>
   <ellipse cx="170.0" cy="546.0" rx="45.0" ry="7.5" fill="none" stroke="#34d399" stroke-opacity="0.25" stroke-width="1.2"/>
-  <text x="170.0" y="534.0" text-anchor="middle" class="node-title" font-size="18.0">证据清单</text>
-  <text x="170.0" y="558.0" text-anchor="middle" class="node-sub">来源 · 日期 · 口径</text>
+  <text x="170.0" y="534.0" text-anchor="middle" class="node-title" font-size="18.0">研究历史</text>
+  <text x="170.0" y="558.0" text-anchor="middle" class="node-sub">工作区 · 投资论点</text>
   </g>
   <g id="node-synthesis" data-graph-role="node" data-node-id="synthesis" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="390,510,590,570">
   <rect x="390.0" y="510.0" width="200.0" height="60.0" rx="18.0" fill="rgba(255,255,255,0.12)" stroke="#c084fc" stroke-width="2.0" filter="url(#shadowGlass)"/>
   <rect x="396.0" y="516.0" width="188.0" height="48.0" rx="15.0" fill="none" stroke="#c084fc" stroke-width="1.2" opacity="0.65"/>
-  <text x="490.0" y="528.0" text-anchor="middle" class="node-type">门控</text>
-  <text x="490.0" y="546.0" text-anchor="middle" class="node-title" font-size="18.0">发布受支持命题</text>
+  <text x="490.0" y="528.0" text-anchor="middle" class="node-type">输出门控</text>
+  <text x="490.0" y="546.0" text-anchor="middle" class="node-title" font-size="18.0">校验结论边界</text>
   </g>
   <g id="node-response" data-graph-role="node" data-node-id="response" data-semantic-role="speech" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="700,510,880,570">
   <path d="M 718.0 510.0 L 862.0 510.0 Q 880.0 510.0 880.0 528.0 L 880.0 552.0 Q 880.0 570.0 862.0 570.0 L 726.0 570.0 L 712.0 588.0 L 716.0 570.0 L 718.0 570.0 Q 700.0 570.0 700.0 552.0 L 700.0 528.0 Q 700.0 510.0 718.0 510.0 Z" fill="rgba(255,255,255,0.12)" stroke="#f59e0b" stroke-width="2.0"/>
-  <text x="790.0" y="540.0" text-anchor="middle" class="node-title" font-size="18.0">报告 + 审计</text>
-  <text x="790.0" y="562.0" text-anchor="middle" class="node-sub">条件 · 失效条件</text>
+  <text x="790.0" y="540.0" text-anchor="middle" class="node-title" font-size="18.0">备忘录 + 审计</text>
+  <text x="790.0" y="562.0" text-anchor="middle" class="node-sub">风险 · 失效条件</text>
   </g>
-  <g id="brief-label" data-graph-role="label" data-owner="brief" data-graph-bounds="274,142,336,162">
-  <rect x="274.0" y="142.0" width="62.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="305.0" y="156.0" text-anchor="middle" class="arrow-label">明确问题</text>
+  <g id="brief-label" data-graph-role="label" data-owner="brief" data-graph-bounds="280,142,330,162">
+  <rect x="280.0" y="142.0" width="50.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="305.0" y="156.0" text-anchor="middle" class="arrow-label">结构化</text>
   </g>
-  <g id="a-delegate-research-label" data-graph-role="label" data-owner="a-delegate-research" data-graph-bounds="296,275,346,295">
-  <rect x="296.0" y="275.0" width="50.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="321.0" y="289.0" text-anchor="middle" class="arrow-label">查事实</text>
+  <g id="a-delegate-research-label" data-graph-role="label" data-owner="a-delegate-research" data-graph-bounds="302,275,340,295">
+  <rect x="302.0" y="275.0" width="38.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="321.0" y="289.0" text-anchor="middle" class="arrow-label">路由</text>
   </g>
-  <g id="b-delegate-coding-label" data-graph-role="label" data-owner="b-delegate-coding" data-graph-bounds="405,255,455,275">
-  <rect x="405.0" y="255.0" width="50.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="430.0" y="269.0" text-anchor="middle" class="arrow-label">建模型</text>
+  <g id="b-delegate-coding-label" data-graph-role="label" data-owner="b-delegate-coding" data-graph-bounds="417,255,455,275">
+  <rect x="417.0" y="255.0" width="38.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="436.0" y="269.0" text-anchor="middle" class="arrow-label">执行</text>
   </g>
-  <g id="c-delegate-review-label" data-graph-role="label" data-owner="c-delegate-review" data-graph-bounds="618,189.4,680,209.4">
-  <rect x="618.0" y="189.4" width="62.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="649.0" y="203.4" text-anchor="middle" class="arrow-label">编译命题</text>
+  <g id="c-delegate-review-label" data-graph-role="label" data-owner="c-delegate-review" data-graph-bounds="630,189.4,668,209.4">
+  <rect x="630.0" y="189.4" width="38.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="649.0" y="203.4" text-anchor="middle" class="arrow-label">约束</text>
   </g>
-  <g id="research-write-label" data-graph-role="label" data-owner="research-write" data-graph-bounds="105,426,167,446">
-  <rect x="105.0" y="426.0" width="62.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="136.0" y="440.0" text-anchor="middle" class="arrow-label">保留证据</text>
+  <g id="research-write-label" data-graph-role="label" data-owner="research-write" data-graph-bounds="129,426,167,446">
+  <rect x="129.0" y="426.0" width="38.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="148.0" y="440.0" text-anchor="middle" class="arrow-label">记录</text>
   </g>
-  <g id="memory-merge-label" data-graph-role="label" data-owner="memory-merge" data-graph-bounds="294,509,356,529">
-  <rect x="294.0" y="509.0" width="62.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="325.0" y="523.0" text-anchor="middle" class="arrow-label">证据编号</text>
+  <g id="memory-merge-label" data-graph-role="label" data-owner="memory-merge" data-graph-bounds="306,509,344,529">
+  <rect x="306.0" y="509.0" width="38.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="325.0" y="523.0" text-anchor="middle" class="arrow-label">历史</text>
   </g>
-  <g id="coding-merge-label" data-graph-role="label" data-owner="coding-merge" data-graph-bounds="425,436,487,456">
-  <rect x="425.0" y="436.0" width="62.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="456.0" y="450.0" text-anchor="middle" class="arrow-label">模型命题</text>
+  <g id="coding-merge-label" data-graph-role="label" data-owner="coding-merge" data-graph-bounds="449,436,487,456">
+  <rect x="449.0" y="436.0" width="38.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="468.0" y="450.0" text-anchor="middle" class="arrow-label">证据</text>
   </g>
-  <g id="review-output-label" data-graph-role="label" data-owner="review-output" data-graph-bounds="737,436,787,456">
-  <rect x="737.0" y="436.0" width="50.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="762.0" y="450.0" text-anchor="middle" class="arrow-label">仅审计</text>
+  <g id="review-output-label" data-graph-role="label" data-owner="review-output" data-graph-bounds="749,436,787,456">
+  <rect x="749.0" y="436.0" width="38.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="768.0" y="450.0" text-anchor="middle" class="arrow-label">缺口</text>
   </g>
-  <g id="deliver-label" data-graph-role="label" data-owner="deliver" data-graph-bounds="614,509,676,529">
-  <rect x="614.0" y="509.0" width="62.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="645.0" y="523.0" text-anchor="middle" class="arrow-label">发布正文</text>
+  <g id="deliver-label" data-graph-role="label" data-owner="deliver" data-graph-bounds="626,509,664,529">
+  <rect x="626.0" y="509.0" width="38.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="645.0" y="523.0" text-anchor="middle" class="arrow-label">交付</text>
   </g>
   <g id="legend" data-graph-role="legend">
-    <rect id="legend-zone" data-graph-role="reserved" data-reserved-kind="legend" x="38" y="611" width="502" height="46" rx="10" fill="none" stroke="none"/>
+    <rect id="legend-zone" data-graph-role="reserved" data-reserved-kind="legend" x="38" y="611" width="514" height="46" rx="10" fill="none" stroke="none"/>
     <line data-graph-role="decoration" x1="48.0" y1="625.0" x2="78.0" y2="625.0" stroke="#60a5fa" stroke-width="2.2" marker-end="url(#arrowC)"/>
-    <text data-graph-role="decoration" x="88.0" y="629.0" class="legend">问题与事实</text>
+    <text data-graph-role="decoration" x="88.0" y="629.0" class="legend">请求与历史</text>
     <line data-graph-role="decoration" x1="176.0" y1="625.0" x2="206.0" y2="625.0" stroke="#c084fc" stroke-width="2.2" marker-end="url(#arrowA)"/>
-    <text data-graph-role="decoration" x="216.0" y="629.0" class="legend">研究分工</text>
-    <line data-graph-role="decoration" x1="292.0" y1="625.0" x2="322.0" y2="625.0" stroke="#34d399" stroke-width="2.2" marker-end="url(#arrowB)"/>
-    <text data-graph-role="decoration" x="332.0" y="629.0" class="legend">证据与模型</text>
+    <text data-graph-role="decoration" x="216.0" y="629.0" class="legend">确定性路由</text>
+    <line data-graph-role="decoration" x1="304.0" y1="625.0" x2="334.0" y2="625.0" stroke="#34d399" stroke-width="2.2" marker-end="url(#arrowB)"/>
+    <text data-graph-role="decoration" x="344.0" y="629.0" class="legend">证据产物</text>
     <line data-graph-role="decoration" x1="420.0" y1="625.0" x2="450.0" y2="625.0" stroke="#f59e0b" stroke-width="2.2" marker-end="url(#arrowG)"/>
-    <text data-graph-role="decoration" x="460.0" y="629.0" class="legend">复核后输出</text>
+    <text data-graph-role="decoration" x="460.0" y="629.0" class="legend">有边界的输出</text>
   </g>
-  <g id="footer" data-graph-role="reserved" data-graph-bounds="48,668,279,684">
-  <text x="48.0" y="680.0" class="footnote">普通缺口只过滤或缩窄命题 · 未支持命题仅进审计层 · 不自动交易</text>
+  <g id="footer" data-graph-role="reserved" data-graph-bounds="48,668,230,684">
+  <text x="48.0" y="680.0" class="footnote">缺失保持缺失 · 同一请求走同一路径 · 不自动交易</text>
   </g>
 </svg>

@@ -44,22 +44,22 @@
     </style>
   </defs>
   <rect data-graph-role="background" width="960.0" height="700.0" fill="#0f172a"/>
-  <text x="480.0" y="56" text-anchor="middle" class="title">From Evidence to Supported Conclusions</text>
-  <text x="480.0" y="82" text-anchor="middle" class="subtitle">freeze the facts · validate each claim · publish supported conclusions · audit the rest</text>
+  <text x="480.0" y="56" text-anchor="middle" class="title">One Question, One Auditable Research Path</text>
+  <text x="480.0" y="82" text-anchor="middle" class="subtitle">structure the request · route deterministically · verify evidence · preserve every boundary</text>
   <g id="mission" data-graph-role="container" data-container-id="mission" data-semantic-role="boundary" data-graph-bounds="40,110,920,220">
   <rect data-graph-role="container" x="40.0" y="110.0" width="880.0" height="110.0" rx="16.0" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.20)" stroke-width="1.4" stroke-dasharray="7 6"/>
-  <text x="58.0" y="134.0" class="section">YOUR INVESTMENT QUESTION</text>
-    <rect id="mission-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="116" width="201.6" height="30" fill="none" stroke="none"/>
+  <text x="58.0" y="134.0" class="section">ASK &amp; STRUCTURE</text>
+    <rect id="mission-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="116" width="140.5" height="30" fill="none" stroke="none"/>
   </g>
   <g id="specialists" data-graph-role="container" data-container-id="specialists" data-semantic-role="boundary" data-graph-bounds="40,270,920,410">
   <rect data-graph-role="container" x="40.0" y="270.0" width="880.0" height="140.0" rx="16.0" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.20)" stroke-width="1.4" stroke-dasharray="7 6"/>
-  <text x="58.0" y="294.0" class="section">CLAIM COMPILER</text>
-    <rect id="specialists-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="276" width="132.18" height="30" fill="none" stroke="none"/>
+  <text x="58.0" y="294.0" class="section">DETERMINISTIC EVIDENCE WORKFLOW</text>
+    <rect id="specialists-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="276" width="253.86" height="30" fill="none" stroke="none"/>
   </g>
   <g id="delivery" data-graph-role="container" data-container-id="delivery" data-semantic-role="boundary" data-graph-bounds="40,450,920,590">
   <rect data-graph-role="container" x="40.0" y="450.0" width="880.0" height="140.0" rx="16.0" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.20)" stroke-width="1.4" stroke-dasharray="7 6"/>
-  <text x="58.0" y="474.0" class="section">OUTPUT</text>
-    <rect id="delivery-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="456" width="75.24" height="30" fill="none" stroke="none"/>
+  <text x="58.0" y="474.0" class="section">DELIVERY</text>
+    <rect id="delivery-header" data-graph-role="reserved" data-reserved-kind="container-header" x="48" y="456" width="86.94" height="30" fill="none" stroke="none"/>
   </g>
   <path id="brief" data-graph-role="edge" data-edge-id="brief" data-source="request" data-target="coordinator" data-edge-kind="flow" data-topic-id="" data-flow="read" data-motion-role="ingress" data-motion-stage="1" data-motion-order="0" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="0" data-route-stretch="1.0" data-bridges="" d="M 220,173 L 390,173" fill="none" stroke="#60a5fa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowC)"/>
   <path id="a-delegate-research" data-graph-role="edge" data-edge-id="a-delegate-research" data-source="coordinator" data-target="research" data-edge-kind="flow" data-topic-id="" data-flow="control" data-motion-role="delegate" data-motion-stage="2" data-motion-order="0" data-protocol="" data-via="" data-critical-path-id="" data-critical-hop="" data-critical-hops="" data-critical="false" data-bends="2" data-route-stretch="1.0" data-bridges="" d="M 472,200 L 472,306 L 170,306 L 170,330" fill="none" stroke="#c084fc" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowA)"/>
@@ -78,23 +78,23 @@
   <g id="node-coordinator" data-graph-role="node" data-node-id="coordinator" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="390,146,590,200">
   <rect x="390.0" y="146.0" width="200.0" height="54.0" rx="18.0" fill="rgba(255,255,255,0.12)" stroke="#c084fc" stroke-width="2.0" filter="url(#shadowGlass)"/>
   <rect x="396.0" y="152.0" width="188.0" height="42.0" rx="15.0" fill="none" stroke="#c084fc" stroke-width="1.2" opacity="0.65"/>
-  <text x="490.0" y="164.0" text-anchor="middle" class="node-type">RESEARCH ROUTER</text>
-  <text x="490.0" y="179.0" text-anchor="middle" class="node-title" font-size="18.0">Route Evidence</text>
+  <text x="490.0" y="164.0" text-anchor="middle" class="node-type">HOST · 8 COMMANDS</text>
+  <text x="490.0" y="179.0" text-anchor="middle" class="node-title" font-size="18.0">HostRequest</text>
   </g>
   <g id="node-research" data-graph-role="node" data-node-id="research" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="80,330,260,390">
   <rect x="80.0" y="330.0" width="180.0" height="60.0" rx="18.0" fill="rgba(255,255,255,0.12)" stroke="#60a5fa" stroke-width="1.8" filter="url(#shadowGlass)"/>
-  <text x="170.0" y="348.0" text-anchor="middle" class="node-type">FREEZE</text>
-  <text x="170.0" y="366.0" text-anchor="middle" class="node-title" font-size="18.0">Freeze Facts</text>
+  <text x="170.0" y="348.0" text-anchor="middle" class="node-type">ROUTER</text>
+  <text x="170.0" y="366.0" text-anchor="middle" class="node-title" font-size="17.11">ResolvedRequest</text>
   </g>
   <g id="node-coding" data-graph-role="node" data-node-id="coding" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="390,330,590,390">
   <rect x="390.0" y="330.0" width="200.0" height="60.0" rx="18.0" fill="rgba(255,255,255,0.12)" stroke="#f59e0b" stroke-width="1.8" filter="url(#shadowGlass)"/>
-  <text x="490.0" y="348.0" text-anchor="middle" class="node-type">MODEL</text>
-  <text x="490.0" y="366.0" text-anchor="middle" class="node-title" font-size="18.0">Model Price</text>
+  <text x="490.0" y="348.0" text-anchor="middle" class="node-type">WORKFLOW</text>
+  <text x="490.0" y="366.0" text-anchor="middle" class="node-title" font-size="18.0">Verify Evidence</text>
   </g>
   <g id="node-review" data-graph-role="node" data-node-id="review" data-semantic-role="rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="700,330,880,390">
   <rect x="700.0" y="330.0" width="180.0" height="60.0" rx="18.0" fill="rgba(255,255,255,0.12)" stroke="#34d399" stroke-width="1.8" filter="url(#shadowGlass)"/>
-  <text x="790.0" y="348.0" text-anchor="middle" class="node-type">CLAIMS</text>
-  <text x="790.0" y="366.0" text-anchor="middle" class="node-title" font-size="18.0">Classify Claims</text>
+  <text x="790.0" y="348.0" text-anchor="middle" class="node-type">BOUNDARY</text>
+  <text x="790.0" y="366.0" text-anchor="middle" class="node-title" font-size="16.71">Keep Gaps Visible</text>
   </g>
   <g id="node-memory" data-graph-role="node" data-node-id="memory" data-semantic-role="cylinder" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="80,510,260,570">
   <ellipse cx="170.0" cy="517.5" rx="45.0" ry="7.5" fill="rgba(255,255,255,0.08)" stroke="#34d399" stroke-width="2.2"/>
@@ -102,68 +102,68 @@
   <ellipse cx="170.0" cy="562.5" rx="45.0" ry="7.5" fill="rgba(255,255,255,0.08)" stroke="#34d399" stroke-width="2.2"/>
   <ellipse cx="170.0" cy="532.8" rx="45.0" ry="7.5" fill="none" stroke="#34d399" stroke-opacity="0.45" stroke-width="1.2"/>
   <ellipse cx="170.0" cy="546.0" rx="45.0" ry="7.5" fill="none" stroke="#34d399" stroke-opacity="0.25" stroke-width="1.2"/>
-  <text x="170.0" y="534.0" text-anchor="middle" class="node-title" font-size="18.0">Evidence Log</text>
-  <text x="170.0" y="558.0" text-anchor="middle" class="node-sub">source · date · scope</text>
+  <text x="170.0" y="534.0" text-anchor="middle" class="node-title" font-size="16.41">Research History</text>
+  <text x="170.0" y="558.0" text-anchor="middle" class="node-sub">workspace · thesis</text>
   </g>
   <g id="node-synthesis" data-graph-role="node" data-node-id="synthesis" data-semantic-role="double_rect" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="390,510,590,570">
   <rect x="390.0" y="510.0" width="200.0" height="60.0" rx="18.0" fill="rgba(255,255,255,0.12)" stroke="#c084fc" stroke-width="2.0" filter="url(#shadowGlass)"/>
   <rect x="396.0" y="516.0" width="188.0" height="48.0" rx="15.0" fill="none" stroke="#c084fc" stroke-width="1.2" opacity="0.65"/>
-  <text x="490.0" y="528.0" text-anchor="middle" class="node-type">GATE</text>
-  <text x="490.0" y="546.0" text-anchor="middle" class="node-title" font-size="18.0">Publication Gate</text>
+  <text x="490.0" y="528.0" text-anchor="middle" class="node-type">OUTPUT GATE</text>
+  <text x="490.0" y="546.0" text-anchor="middle" class="node-title" font-size="15.04">Validate Conclusions</text>
   </g>
   <g id="node-response" data-graph-role="node" data-node-id="response" data-semantic-role="speech" data-motion-role="" data-motion-stage="" data-motion-order="" data-parent="" data-deployment-id="" data-topic-id="" data-span-id="" data-station-order="" data-status="" data-start-ms="" data-duration-ms="" data-parent-span="" data-graph-bounds="700,510,880,570">
   <path d="M 718.0 510.0 L 862.0 510.0 Q 880.0 510.0 880.0 528.0 L 880.0 552.0 Q 880.0 570.0 862.0 570.0 L 726.0 570.0 L 712.0 588.0 L 716.0 570.0 L 718.0 570.0 Q 700.0 570.0 700.0 552.0 L 700.0 528.0 Q 700.0 510.0 718.0 510.0 Z" fill="rgba(255,255,255,0.12)" stroke="#f59e0b" stroke-width="2.0"/>
-  <text x="790.0" y="540.0" text-anchor="middle" class="node-title" font-size="18.0">Report + Audit</text>
-  <text x="790.0" y="562.0" text-anchor="middle" class="node-sub">conditions · invalidators</text>
+  <text x="790.0" y="540.0" text-anchor="middle" class="node-title" font-size="18.0">Memo + Audit</text>
+  <text x="790.0" y="562.0" text-anchor="middle" class="node-sub">risks · invalidators</text>
   </g>
-  <g id="brief-label" data-graph-role="label" data-owner="brief" data-graph-bounds="278.68,142,331.32,162">
-  <rect x="278.68" y="142.0" width="52.64" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="305.0" y="156.0" text-anchor="middle" class="arrow-label">define</text>
+  <g id="brief-label" data-graph-role="label" data-owner="brief" data-graph-bounds="266.68,142,343.32,162">
+  <rect x="266.68" y="142.0" width="76.64" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="305.0" y="156.0" text-anchor="middle" class="arrow-label">structure</text>
   </g>
-  <g id="a-delegate-research-label" data-graph-role="label" data-owner="a-delegate-research" data-graph-bounds="296.6,275,345.4,295">
-  <rect x="296.6" y="275.0" width="48.8" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="321.0" y="289.0" text-anchor="middle" class="arrow-label">facts</text>
+  <g id="a-delegate-research-label" data-graph-role="label" data-owner="a-delegate-research" data-graph-bounds="309.2,275,368.8,295">
+  <rect x="309.2" y="275.0" width="59.599999999999994" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="339.0" y="289.0" text-anchor="middle" class="arrow-label">resolve</text>
   </g>
-  <g id="b-delegate-coding-label" data-graph-role="label" data-owner="b-delegate-coding" data-graph-bounds="409.32,255,455,275">
-  <rect x="409.32" y="255.0" width="45.67999999999999" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="432.16" y="269.0" text-anchor="middle" class="arrow-label">model</text>
+  <g id="b-delegate-coding-label" data-graph-role="label" data-owner="b-delegate-coding" data-graph-bounds="432,251,468,271">
+  <rect x="432.0" y="251.0" width="36.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="450.0" y="265.0" text-anchor="middle" class="arrow-label">run</text>
   </g>
-  <g id="c-delegate-review-label" data-graph-role="label" data-owner="c-delegate-review" data-graph-bounds="620.76,189.4,677.24,209.4">
-  <rect x="620.76" y="189.4" width="56.48" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="649.0" y="203.4" text-anchor="middle" class="arrow-label">compile</text>
+  <g id="c-delegate-review-label" data-graph-role="label" data-owner="c-delegate-review" data-graph-bounds="612.24,189.4,685.76,209.4">
+  <rect x="612.24" y="189.4" width="73.52" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="649.0" y="203.4" text-anchor="middle" class="arrow-label">constrain</text>
   </g>
-  <g id="research-write-label" data-graph-role="label" data-owner="research-write" data-graph-bounds="100.44,426,167,446">
-  <rect x="100.44" y="426.0" width="66.56" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="133.72" y="440.0" text-anchor="middle" class="arrow-label">evidence</text>
+  <g id="research-write-label" data-graph-role="label" data-owner="research-write" data-graph-bounds="130,426,166,446">
+  <rect x="130.0" y="426.0" width="36.0" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="148.0" y="440.0" text-anchor="middle" class="arrow-label">log</text>
   </g>
-  <g id="memory-merge-label" data-graph-role="label" data-owner="memory-merge" data-graph-bounds="280.68,509,369.32,529">
-  <rect x="280.68" y="509.0" width="88.64000000000001" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="325.0" y="523.0" text-anchor="middle" class="arrow-label">evidence ids</text>
+  <g id="memory-merge-label" data-graph-role="label" data-owner="memory-merge" data-graph-bounds="295.2,509,354.8,529">
+  <rect x="295.2" y="509.0" width="59.6" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="325.0" y="523.0" text-anchor="middle" class="arrow-label">history</text>
   </g>
-  <g id="coding-merge-label" data-graph-role="label" data-owner="coding-merge" data-graph-bounds="401.48,436,487,456">
-  <rect x="401.48" y="436.0" width="85.52" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="444.24" y="450.0" text-anchor="middle" class="arrow-label">model claims</text>
+  <g id="coding-merge-label" data-graph-role="label" data-owner="coding-merge" data-graph-bounds="420.44,436,487,456">
+  <rect x="420.44" y="436.0" width="66.56" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="453.72" y="450.0" text-anchor="middle" class="arrow-label">evidence</text>
   </g>
-  <g id="review-output-label" data-graph-role="label" data-owner="review-output" data-graph-bounds="712.28,436,787,456">
-  <rect x="712.28" y="436.0" width="74.72" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="749.64" y="450.0" text-anchor="middle" class="arrow-label">audit only</text>
+  <g id="review-output-label" data-graph-role="label" data-owner="review-output" data-graph-bounds="745.16,436,787,456">
+  <rect x="745.16" y="436.0" width="41.839999999999996" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="766.08" y="450.0" text-anchor="middle" class="arrow-label">gaps</text>
   </g>
   <g id="deliver-label" data-graph-role="label" data-owner="deliver" data-graph-bounds="616.76,509,673.24,529">
-  <rect x="616.76" y="509.0" width="56.48" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
-  <text x="645.0" y="523.0" text-anchor="middle" class="arrow-label">publish</text>
+  <rect x="616.76" y="509.0" width="56.480000000000004" height="20" rx="6" fill="rgba(15,23,42,0.7)" opacity="1"/>
+  <text x="645.0" y="523.0" text-anchor="middle" class="arrow-label">deliver</text>
   </g>
   <g id="legend" data-graph-role="legend">
-    <rect id="legend-zone" data-graph-role="reserved" data-reserved-kind="legend" x="38" y="611" width="676" height="46" rx="10" fill="none" stroke="none"/>
+    <rect id="legend-zone" data-graph-role="reserved" data-reserved-kind="legend" x="38" y="611" width="718.24" height="46" rx="10" fill="none" stroke="none"/>
     <line data-graph-role="decoration" x1="48.0" y1="625.0" x2="78.0" y2="625.0" stroke="#60a5fa" stroke-width="2.2" marker-end="url(#arrowC)"/>
-    <text data-graph-role="decoration" x="88.0" y="629.0" class="legend">question &amp; facts</text>
-    <line data-graph-role="decoration" x1="221.84" y1="625.0" x2="251.84" y2="625.0" stroke="#c084fc" stroke-width="2.2" marker-end="url(#arrowA)"/>
-    <text data-graph-role="decoration" x="261.84000000000003" y="629.0" class="legend">research paths</text>
-    <line data-graph-role="decoration" x1="384.64" y1="625.0" x2="414.64" y2="625.0" stroke="#34d399" stroke-width="2.2" marker-end="url(#arrowB)"/>
-    <text data-graph-role="decoration" x="424.64" y="629.0" class="legend">evidence &amp; model</text>
-    <line data-graph-role="decoration" x1="555.36" y1="625.0" x2="585.36" y2="625.0" stroke="#f59e0b" stroke-width="2.2" marker-end="url(#arrowG)"/>
-    <text data-graph-role="decoration" x="595.36" y="629.0" class="legend">reviewed output</text>
+    <text data-graph-role="decoration" x="88.0" y="629.0" class="legend">request &amp; history</text>
+    <line data-graph-role="decoration" x1="228.8" y1="625.0" x2="258.8" y2="625.0" stroke="#c084fc" stroke-width="2.2" marker-end="url(#arrowA)"/>
+    <text data-graph-role="decoration" x="268.8" y="629.0" class="legend">deterministic route</text>
+    <line data-graph-role="decoration" x1="417.04" y1="625.0" x2="447.04" y2="625.0" stroke="#34d399" stroke-width="2.2" marker-end="url(#arrowB)"/>
+    <text data-graph-role="decoration" x="457.04" y="629.0" class="legend">evidence artifacts</text>
+    <line data-graph-role="decoration" x1="601.44" y1="625.0" x2="631.44" y2="625.0" stroke="#f59e0b" stroke-width="2.2" marker-end="url(#arrowG)"/>
+    <text data-graph-role="decoration" x="641.44" y="629.0" class="legend">bounded output</text>
   </g>
-  <g id="footer" data-graph-role="reserved" data-graph-bounds="48,668,720,684">
-  <text x="48.0" y="680.0" class="footnote">Ordinary gaps filter or narrow claims · unsupported claims stay audit-only · no automatic trades</text>
+  <g id="footer" data-graph-role="reserved" data-graph-bounds="48,668,643,684">
+  <text x="48.0" y="680.0" class="footnote">Missing stays missing · the same request follows the same route · no automatic trades</text>
   </g>
 </svg>

@@ -50,7 +50,23 @@ Investors rarely struggle because they cannot generate another paragraph of comm
 - Did the latest filing improve earnings quality, cash conversion, and shareholder returns?
 - Does a ten-position portfolio actually contain ten independent risks?
 
-`stock-analysis` is an open-source, deterministic research operating system for global stocks, funds, and portfolios. It handles the hard middle of investment research: verify the premise, reconcile conflicting evidence, build the operating case, reverse the current market cap into the earnings it already discounts, and publish only claims that pass explicit evidence rules. The output shows the gap between your model and the market's model—not a one-line Buy/Sell label.
+`stock-analysis` is an open-source research operating system for investors—not an AI stock picker. It turns a plain-language question into a repeatable evidence workflow: verify the premise, reconcile conflicting sources, model the business, reverse the price, surface risks, and save what changed. The output is a research memo with evidence boundaries and follow-up triggers, not a one-line Buy/Sell label.
+
+## The product in one minute
+
+| An investor asks… | The system checks… | The investor receives… |
+|---|---|---|
+| What happened in the market today? | Trading session, indices, breadth, rotation, liquidity, and missing feeds | A market recap with facts first and a next-session watchlist |
+| Is this stock or ETF worth deeper work? | Price, filings, financial quality, valuation, index exposure, drawdown, and implementation cost | A structured research memo showing what is supported, disputed, or still unknown |
+| Did earnings or a sharp move change the case? | Comparable reporting periods, public events, market-wide factors, and causal evidence | A change review that separates confirmed triggers from plausible links and speculation |
+| Is my portfolio taking one hidden bet? | Holdings completeness, concentration, correlation, currencies, benchmarks, and liquidity | A portfolio review whose conclusion is limited when holdings are partial, stale, or missing |
+| Has my investment thesis been invalidated? | The current frozen evidence against earlier immutable thesis versions | A review, comparison, update, or invalidation event with a complete audit trail |
+
+The product makes three promises:
+
+1. **Missing stays missing.** No absent number becomes zero, a score, or confident prose.
+2. **The same request follows the same route.** Agent hosts structure the request; Python makes the deterministic decision.
+3. **Every conclusion keeps its boundary.** Dates, sources, evidence gaps, routing reasons, and saved artifacts remain inspectable.
 
 ### Choose your path
 
@@ -85,16 +101,16 @@ stock-analysis --market research --symbol 600519 --expectations-file examples/co
 
 > The output is for research only and does not constitute investment advice.
 
-## 72-second demo
+## Watch the product in 72 seconds
 
 <p align="center">
   <a href="promo/demo-video/out/stock-analysis-demo-en.mp4"><img src="assets/demo-video-preview-en.png" alt="Play the English 72-second stock-analysis demo" width="48%"></a>
   <a href="promo/demo-video/out/stock-analysis-demo-zh-CN.mp4"><img src="assets/demo-video-preview-zh-CN.png" alt="播放 stock-analysis 72 秒中文演示" width="48%"></a>
 </p>
 
-Click either poster to play the [English video](promo/demo-video/out/stock-analysis-demo-en.mp4) or [简体中文视频](promo/demo-video/out/stock-analysis-demo-zh-CN.mp4).
+Choose the narration you prefer: [watch in English](promo/demo-video/out/stock-analysis-demo-en.mp4) or [用简体中文观看](promo/demo-video/out/stock-analysis-demo-zh-CN.mp4).
 
-Both demos are 1080p, 72 seconds, caption-led, and work without audio. The v4.16 cut follows the full path from multi-market evidence through forward/reverse valuation, discrete claim validation, publication gating, audit artifacts, and the dynamic committee. Editable Remotion source lives in [`promo/demo-video`](promo/demo-video/).
+Both introductions are 1080p, 72 seconds, caption-led, and work without audio. They show one investor question moving through multi-market evidence, forward/reverse valuation, claim validation, publication gating, and a final committee memo. The video is the v4.16 research-engine cut; the updated v4.17 host protocol and deterministic route appear in the architecture animation below. Editable Remotion source lives in [`promo/demo-video`](promo/demo-video/).
 
 ## Read this README by goal
 
@@ -135,17 +151,16 @@ Choose the investing question you have rather than assembling low-level flags. E
 
 | If you need to… | Use it when… | Scenario | Deterministic entrypoint |
 |---|---|---|---|
-| Understand today's market | You want market context before, during, or after a trading session. | `/market-recap` | `--market daily` |
-| Fact-check a ticker | You only need price, recent performance, turnover, and disclosed facts—not an opinion. | `/stock-snapshot` | `--market stock --symbol` |
-| Decide whether a company merits more research | You are considering a position, a hold, or a structured fact check. | `/stock-review` | `--market stock-review --symbol` |
-| See what actually changed after results | A quarterly or annual report has been released and you want disclosed financial facts. | `/earnings-review` | `--market earnings --symbol` |
-| Investigate a sharp move cautiously | You want price, volume, and public events without treating a headline as proof of cause. | `/price-move` | `--market price-move --symbol` |
-| Check whether holdings are too concentrated | You have already saved complete holdings information. | `/portfolio-review` | `--market portfolio` |
-| Find A-shares meeting explicit financial conditions | You have hard conditions such as ROE or revenue growth and need repeatable results. | `/stock-screen` | `--market screen …` |
-| Record and revisit your investment case | You have an investment hypothesis and want to check it against later facts. | `/thesis-create`, `/thesis-review` | `--market thesis-create|thesis-review --symbol` |
-| Run a recoverable institutional research process | You need staged artifacts that can be resumed, audited, and compared with the prior review. | `/research-workspace` | `--market research --symbol` |
+| Understand today's market | You want market context before, during, or after a trading session. | `/market` | `--market daily` |
+| Fact-check a ticker | You only need price, recent performance, turnover, and disclosed facts—not an opinion. | `/snapshot` | `--market stock --symbol` |
+| Decide whether an asset merits deeper work | You are considering a position, a hold, or a recoverable research process. | `/analyze` | `--market research --symbol` |
+| See what actually changed after results | A quarterly or annual report has been released and you want comparable disclosed facts. | `/earnings` | `--market earnings --symbol` |
+| Investigate a sharp move cautiously | You want price, volume, and public events without treating a headline as proof of cause. | `/move` | `--market price-move --symbol` |
+| Find A-shares meeting explicit financial conditions | You have hard conditions such as ROE or revenue growth and need repeatable results. | `/screen` | `--market screen …` |
+| Check whether holdings are too concentrated | You have complete holdings and want to see hidden factor, currency, or liquidity bets. | `/portfolio` | `--market portfolio` |
+| Record and revisit your investment case | You want to create, review, compare, update, or invalidate a thesis without rewriting history. | `/thesis` | `--market thesis-* --symbol` |
 
-Claude Code supports native `/command` entrypoints. In Codex, Custom Prompts appear as `/prompts:stock-review`; after installing the generated Skills, an Agent can match a plain-language request such as “review Tencent” to the relevant Skill and run its deterministic command. Intent matching happens in the host Agent from the Skill description, not in the `stock-analysis` Python package. The same canonical catalog generates every entrypoint, so their workflow contract does not drift.
+Claude Code supports native `/command` entrypoints. In Codex, Custom Prompts appear as `/prompts:analyze`; after installing the generated Skills, an Agent can match a plain-language request such as “review Tencent” to the relevant Skill and run its deterministic command. Older names such as `/market-recap` and `/stock-review` are temporary compatibility forwards. Intent matching happens in the host Agent from the Skill description, not in the `stock-analysis` Python package. The same canonical catalog generates every entrypoint, so their workflow contract does not drift.
 
 ### Agent command protocol v2
 
@@ -177,7 +192,20 @@ Generated files carry the catalog hash, command id, and schema metadata. Install
 
 ![Investor-friendly stock-analysis architecture animation](assets/investor-research-architecture-en.gif)
 
-The animated overview follows the investor journey: ask a question, gather checkable evidence, compare multiple investment perspectives, and receive a decision memo with risks and monitoring triggers. The diagram below exposes the same process in more detail for readers who want to audit it.
+The animation shows the v4.17 production path in plain terms: the host turns your question into one of eight structured requests, the Python Router resolves it without guessing from free text, the selected workflow verifies evidence, and the output gate preserves every missing-data boundary.
+
+```mermaid
+flowchart LR
+    Q["Investor question"] --> H["HostRequest<br/>host structures one of 8 commands"]
+    H --> R["ResolvedRequest<br/>deterministic route + reason"]
+    R --> W["Workflow<br/>verify facts, valuation, and risk"]
+    W --> G{"Evidence sufficient?"}
+    G -- Yes --> M["Memo + audit trail"]
+    G -- No --> B["Narrow or block the claim<br/>missing stays missing"]
+    M --> S["Workspace / thesis history"]
+```
+
+The diagram below exposes the research engine in more detail for readers who want to audit it.
 
 ```mermaid
 flowchart TB
@@ -261,14 +289,14 @@ The public report keeps the existing company/fund eight-section skeleton and nev
 
 ### No programming experience: give this to your Agent
 
-Paste into Codex, Claude Code, or Hermes:
+Paste into Codex or Claude Code:
 
 ```text
 Install https://github.com/AdvancingTitans/stock-analysis for me:
 1. clone the repository;
 2. install stock-analysis with uv;
-3. run the repository's Agent entrypoint installer;
-4. verify stock-analysis --help and the installed Skill;
+3. run stock-analysis-agent dry-run all, then stock-analysis-agent install all;
+4. run stock-analysis-agent doctor all and verify stock-analysis --version;
 5. do not modify unrelated project files, and finish by giving me three prompts I can use immediately.
 ```
 
@@ -281,11 +309,12 @@ git clone https://github.com/AdvancingTitans/stock-analysis.git
 cd stock-analysis
 uv tool install --force .
 python3 scripts/sync_agent_entrypoints.py --check
-scripts/install-agent-entrypoints.sh codex
-scripts/install-agent-entrypoints.sh claude
+stock-analysis-agent dry-run all
+stock-analysis-agent install all
+stock-analysis-agent doctor all
 ```
 
-For CLI-only use, `uv tool install stock-analysis` is enough. The Agent installer copies Codex Skills into `${CODEX_HOME:-~/.codex}/skills` and Claude commands into `${CLAUDE_CONFIG_DIR:-~/.claude}/commands`; it does not modify existing portfolio memory.
+For CLI-only use, `uv tool install stock-analysis` is enough. The managed installer adds Codex Skills + Prompts and Claude commands, records them in one manifest, refuses to overwrite unmanaged files, and supports a guarded `uninstall`; it does not modify existing portfolio memory.
 
 ## Prompt cookbook after installation
 
@@ -552,20 +581,21 @@ For current-day A-share reports, whole-market breadth is counted only after ever
 
 ## Built For Agents
 
-`stock-analysis` is intentionally agent-friendly:
+The Agent surface is a public protocol, not a free-text parser hidden inside Python:
 
-- Deterministic CLI first; LLM layers can consume evidence later.
-- Markdown for human review, JSON for machine workflows.
-- Explicit source events and fallback reasons.
-- Stable command surface for cron jobs, notebooks, Hermes, Codex, Claude Code, and other tool-calling agents.
+- Eight formal commands cover market, snapshot, analysis, earnings, moves, screening, portfolios, and thesis history.
+- Codex and Claude structure a `HostRequest`; Python returns one deterministic `ResolvedRequest` and workflow.
+- `--input` is reserved for debugging and test fixtures, never the production chain.
+- Catalog hash, route reason, argv, output contract, dates, sources, and fallback events remain machine-auditable.
+- Markdown is for investor review; JSON is for hosts, cron jobs, notebooks, and downstream automation.
 
 Example agent prompt:
 
 ```text
-Run stock-analysis --market global --format full --emit-evidence.
-Use the Markdown report for the user-facing recap.
-Use evidence_YYYYMMDD.json to verify every strong conclusion before summarizing.
-If a module is missing, say which evidence was unavailable instead of guessing.
+Use /analyze to research 600519 as of the latest completed trading day.
+Test whether price is supported by earnings quality, cash conversion, shareholder returns,
+and reverse valuation. Keep missing evidence missing, preserve route metadata,
+and give me the investor memo plus the audit artifact paths.
 ```
 
 See [examples/agent.md](examples/agent.md) for a daily agent workflow and [examples/github-actions-daily-recap.yml](examples/github-actions-daily-recap.yml) for a scheduled GitHub Actions recap that uploads the report plus Evidence Pack.

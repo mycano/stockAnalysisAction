@@ -21,8 +21,8 @@ Screenshots and share cards used by the README and [report directory](../reports
 
 ## Product Architecture and Demo
 
-- `investor-research-architecture-en.gif`: English investor-to-report architecture animation.
-- `investor-research-architecture-zh-CN.gif`: Simplified Chinese architecture animation.
+- `investor-research-architecture-en.gif`: English v4.17 animation from investor question through `HostRequest → ResolvedRequest → Workflow` to an auditable memo.
+- `investor-research-architecture-zh-CN.gif`: Simplified Chinese v4.17 animation of the same deterministic research path.
 - `diagrams/investor-research-architecture-*.source.json`: semantic inputs for the English and Simplified Chinese architecture diagrams.
 - `diagrams/investor-research-architecture-*.svg`: validated semantic SVG sources used to render the GIFs.
 - `diagrams/investor-research-architecture-*.layout.json`: geometry and layout validation reports.
@@ -31,7 +31,9 @@ Screenshots and share cards used by the README and [report directory](../reports
 - `demo-video-preview-zh-CN.png`: Simplified Chinese poster linking to the 72-second Remotion demo.
 
 The architecture animations use the `fireworks-tech-graph` `agent` template and
-the `agent-orchestration` motion contract. To reproduce one locale, replace the
+the `agent-orchestration` motion contract. They keep the host, Router, workflow,
+evidence-boundary, history, and output-gate roles visible while preserving one
+validated nine-route topology. To reproduce one locale, replace the
 placeholders below with the installed skill path and the desired locale (`en` or
 `zh-CN`):
 

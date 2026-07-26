@@ -50,7 +50,23 @@
 - 财报发布后，利润、现金流、分红和资本配置到底发生了什么？
 - 我的持仓看起来有十只股票，实际是不是都押在同一个风格上？
 
-`stock-analysis` 是面向全球股票、基金与组合的开源确定性投研操作系统。它补上投研最难的中间环节：先核验用户前提和冲突证据，再建立经营模型，把当前市值逆推出市场已经交易的利润，并且只发布通过明确证据规则的命题。最终交付不是一句“买入/卖出”，而是你的模型与市场模型之间究竟差在哪里。
+`stock-analysis` 是给投资者使用的开源投研操作系统，不是“AI 选股器”。它把一句自然语言问题变成可重复的证据流程：核验前提、处理冲突来源、建立经营模型、逆向拆解股价、暴露风险，并保存“这次和上次有什么变化”。最终交付是带证据边界和复查触发器的研究备忘录，不是一句“买入/卖出”。
+
+## 一分钟看懂这个产品
+
+| 投资者的问题 | 系统会核对什么 | 最终得到什么 |
+|---|---|---|
+| 今天市场发生了什么？ | 交易时段、指数、涨跌家数、板块轮动、流动性和缺失数据 | 先讲事实的市场复盘，以及下一交易日观察清单 |
+| 这只股票或 ETF 值得深入研究吗？ | 行情、财报、盈利质量、估值、指数暴露、回撤和交易成本 | 一份明确区分“已支持、存在分歧、仍然未知”的研究备忘录 |
+| 财报或大涨大跌改变投资逻辑了吗？ | 可比报告期、公开事件、市场共同因素和因果证据 | 把“已确认触发、可能相关、市场因素、无依据猜测、未知”分开的变化复核 |
+| 我的组合是不是看似分散、实际押注同一风险？ | 持仓完整性、集中度、相关性、币种、基准和流动性 | 持仓缺失、过期或不完整时自动收窄结论的组合复核 |
+| 原来的投资论点被证伪了吗？ | 当前冻结证据与历史不可变版本 | 带完整审计链的复核、比较、更新或失效记录 |
+
+产品坚持三个承诺：
+
+1. **缺失就是缺失。** 不把空数据补成 `0`、评分或自信结论。
+2. **同样的请求走同样的路径。** Agent 宿主负责结构化，Python 负责确定性决策。
+3. **每个结论都保留边界。** 日期、来源、证据缺口、路由原因和保存产物都可以回查。
 
 ### 按你的使用方式开始
 
@@ -61,7 +77,7 @@
 | 研究员或复核者 | `stock-analysis --market research --symbol <代码>` | 可恢复 Workspace、冻结证据、命题台账、投委会复核和最终报告 |
 | 贡献者 | [开发](#开发) | 测试、Schema、统一 Agent 契约，以及可扩展的数据源与 lens 边界 |
 
-不懂 Python 也可以使用。安装 Skill 后，在 Codex、Claude Code 或 Hermes 里直接说中文即可：
+不懂 Python 也可以使用。安装 Skill 后，在 Codex 或 Claude Code 里直接说中文即可：
 
 ```text
 深度分析半导体ETF 512480。重点回答当前估值是否透支景气，
@@ -85,16 +101,16 @@ stock-analysis --market research --symbol 600519 --expectations-file examples/co
 
 > 输出仅供研究参考，不构成投资建议。
 
-## 72 秒演示
+## 72 秒看懂产品
 
 <p align="center">
   <a href="promo/demo-video/out/stock-analysis-demo-zh-CN.mp4"><img src="assets/demo-video-preview-zh-CN.png" alt="播放 stock-analysis 72 秒中文演示" width="48%"></a>
   <a href="promo/demo-video/out/stock-analysis-demo-en.mp4"><img src="assets/demo-video-preview-en.png" alt="播放 stock-analysis 72 秒英文演示" width="48%"></a>
 </p>
 
-点击海报即可播放[简体中文视频](promo/demo-video/out/stock-analysis-demo-zh-CN.mp4)或 [English video](promo/demo-video/out/stock-analysis-demo-en.mp4)。
+按你的语言习惯选择：[观看简体中文介绍](promo/demo-video/out/stock-analysis-demo-zh-CN.mp4)或 [Watch in English](promo/demo-video/out/stock-analysis-demo-en.mp4)。
 
-两个演示均为 1080p、72 秒，以字幕传递完整信息，静音也能观看。v4.16 版完整展示多市场证据、正逆向估值、离散命题校验、发布门控、审计产物与动态投委会；可编辑的 Remotion 工程位于 [`promo/demo-video`](promo/demo-video/)。
+两个介绍均为 1080p、72 秒，以字幕传递完整信息，静音也能观看。视频展示一个投资问题如何经过多市场证据、正逆向估值、命题校验和发布门控，最终成为投委会备忘录。视频对应 v4.16 研究引擎；v4.17 新增的宿主协议与确定性路由已展示在下方新版动态架构图中。可编辑的 Remotion 工程位于 [`promo/demo-video`](promo/demo-video/)。
 
 ## 按目标阅读 README
 
@@ -135,17 +151,16 @@ stock-analysis --market research --symbol 600519 --expectations-file examples/co
 
 | 你现在要解决的问题 | 什么时候用 | 场景入口 | 确定性 CLI |
 |---|---|---|---|
-| 今天市场发生了什么 | 开盘前、盘中或收盘后想先掌握市场背景 | `/market-recap` | `--market daily` |
-| 核对一个标的的事实 | 只想看现价、近期涨跌、成交和已披露财务，不想要观点 | `/stock-snapshot` | `--market stock --symbol` |
-| 这家公司是否值得继续花时间研究 | 准备建仓、继续持有或做一次更系统的事实核对 | `/stock-review` | `--market stock-review --symbol` |
-| 财报出来后，哪些数字真的变了 | 已发布季报/年报后，只复核公开披露的财务事实 | `/earnings-review` | `--market earnings --symbol` |
-| 一只股票突然涨跌，先发生了什么 | 想区分价格、成交和公开事件，避免把新闻直接当原因 | `/price-move` | `--market price-move --symbol` |
-| 我的持仓是否过于集中 | 已保存完整持仓资料后检查集中度、市场和币种暴露 | `/portfolio-review` | `--market portfolio` |
-| 找出满足明确财务条件的 A 股 | 已有 ROE、营收增速等硬条件，且希望结果可重复 | `/stock-screen` | `--market screen …` |
-| 留下并复查自己的投资理由 | 已经形成投资假设，想在以后用新事实重新核对 | `/thesis-create`、`/thesis-review` | `--market thesis-create|thesis-review --symbol` |
-| 运行可恢复的机构化研究流程 | 需要阶段产物可中断恢复、审计，并与上次研究比较 | `/research-workspace` | `--market research --symbol` |
+| 今天市场发生了什么 | 开盘前、盘中或收盘后想先掌握市场背景 | `/market` | `--market daily` |
+| 核对一个标的的事实 | 只想看现价、近期涨跌、成交和已披露财务，不想要观点 | `/snapshot` | `--market stock --symbol` |
+| 一个标的是否值得深度研究 | 准备建仓、继续持有，或需要可恢复的完整研究流程 | `/analyze` | `--market research --symbol` |
+| 财报出来后，哪些数字真的变了 | 已发布季报/年报后，按可比口径复核公开披露事实 | `/earnings` | `--market earnings --symbol` |
+| 一只股票突然涨跌，先发生了什么 | 想区分价格、成交和公开事件，避免把新闻直接当原因 | `/move` | `--market price-move --symbol` |
+| 找出满足明确财务条件的 A 股 | 已有 ROE、营收增速等硬条件，且希望结果可重复 | `/screen` | `--market screen …` |
+| 我的持仓是否押在同一个风险上 | 已有完整持仓，想检查因子、币种、集中度与流动性 | `/portfolio` | `--market portfolio` |
+| 留下并复查自己的投资理由 | 想创建、复核、比较、更新或判定论点失效，同时保留历史 | `/thesis` | `--market thesis-* --symbol` |
 
-Claude Code 原生支持 `/command` 入口。Codex 的 Custom Prompt 显示为 `/prompts:stock-review`；安装生成的 Skill 后，Agent 可以根据 Skill 描述把“分析腾讯”这类自然语言请求匹配到相应 Skill，并执行其中的确定性命令。意图识别发生在宿主 Agent，而非 `stock-analysis` Python 包内部。所有入口均从同一份 canonical catalog 生成，避免工作流漂移。
+Claude Code 原生支持 `/command` 入口。Codex 的 Custom Prompt 显示为 `/prompts:analyze`；安装生成的 Skill 后，Agent 可以根据 Skill 描述把“分析腾讯”这类自然语言请求匹配到相应 Skill，并执行其中的确定性命令。`/market-recap`、`/stock-review` 等旧名称只是临时兼容转发。意图识别发生在宿主 Agent，而非 `stock-analysis` Python 包内部。所有入口均从同一份 canonical catalog 生成，避免工作流漂移。
 
 ### Agent 命令协议 v2
 
@@ -177,7 +192,20 @@ stock-analysis agent run --request request.json
 
 ![面向投资者的 stock-analysis 架构动画](assets/investor-research-architecture-zh-CN.gif)
 
-这张动画按投资者的实际使用路径展开：提出问题、汇集可核验证据、比较多种投资视角，最后得到包含风险与跟踪触发器的决策备忘录。希望进一步核对内部逻辑的读者，可以继续查看下方的详细流程图。
+新版动画展示 v4.17 的正式运行路径：宿主先把你的问题整理成八个命令之一，Python Router 不猜自然语言，只对结构化请求做确定性路由；随后工作流校验证据，输出门控保留所有缺失边界。
+
+```mermaid
+flowchart LR
+    Q["投资问题"] --> H["HostRequest<br/>宿主结构化为八命令之一"]
+    H --> R["ResolvedRequest<br/>确定性路径 + 路由理由"]
+    R --> W["Workflow<br/>校验事实、估值与风险"]
+    W --> G{"证据足够？"}
+    G -- 是 --> M["备忘录 + 审计记录"]
+    G -- 否 --> B["缩窄或阻断命题<br/>缺失保持缺失"]
+    M --> S["Workspace / Thesis 历史"]
+```
+
+希望进一步核对研究引擎内部逻辑的读者，可以继续查看下方详细流程图。
 
 ```mermaid
 flowchart TB
@@ -261,14 +289,14 @@ flowchart TB
 
 ### 不会编程：把这段话发给你的 Agent
 
-在 Codex、Claude Code 或 Hermes 中粘贴：
+在 Codex 或 Claude Code 中粘贴：
 
 ```text
 请帮我安装 https://github.com/AdvancingTitans/stock-analysis：
 1. 克隆仓库；
 2. 用 uv 安装 stock-analysis；
-3. 运行仓库里的 Agent entrypoint 安装脚本；
-4. 检查 stock-analysis --help 和内置 Skill 是否可用；
+3. 先运行 stock-analysis-agent dry-run all，再运行 stock-analysis-agent install all；
+4. 运行 stock-analysis-agent doctor all，并检查 stock-analysis --version；
 5. 不要改动我的其他项目文件，完成后告诉我可以直接使用的三个中文提示词。
 ```
 
@@ -281,11 +309,12 @@ git clone https://github.com/AdvancingTitans/stock-analysis.git
 cd stock-analysis
 uv tool install --force .
 python3 scripts/sync_agent_entrypoints.py --check
-scripts/install-agent-entrypoints.sh codex
-scripts/install-agent-entrypoints.sh claude
+stock-analysis-agent dry-run all
+stock-analysis-agent install all
+stock-analysis-agent doctor all
 ```
 
-只使用 CLI 时，执行 `uv tool install stock-analysis` 即可。Agent 安装器只复制 Codex Skills 到 `${CODEX_HOME:-~/.codex}/skills`、Claude commands 到 `${CLAUDE_CONFIG_DIR:-~/.claude}/commands`；不会修改已有持仓记忆。
+只使用 CLI 时，执行 `uv tool install stock-analysis` 即可。托管安装器会添加 Codex Skills + Prompts 与 Claude commands，用统一 manifest 记录文件，拒绝覆盖非托管内容，并支持受保护的 `uninstall`；不会修改已有持仓记忆。
 
 ## 安装后，推荐这样提问
 
@@ -549,20 +578,20 @@ m6_YYYYMMDD.json
 
 ## 为 Agent 而设计
 
-`stock-analysis` 对工具调用友好：
+Agent 入口是一份公开协议，而不是藏在 Python 里的自由文本猜测器：
 
-- 先有确定性 CLI，LLM 层可以后续消费 evidence。
-- Markdown 给人看，JSON 给机器工作流用。
-- 明确记录来源事件和 fallback 原因。
-- 命令界面稳定，适合 cron、notebook、Hermes、Codex、Claude Code 和其他工具调用型 Agent。
+- 八个正式命令覆盖市场、速览、深度分析、财报、异动、筛选、组合和投资论点。
+- Codex、Claude 等宿主生成 `HostRequest`；Python 只返回确定性的 `ResolvedRequest` 与 Workflow。
+- `--input` 仅供调试和测试 Fixture，绝不进入正式链路。
+- catalog hash、路由理由、argv、输出契约、日期、来源和 fallback 事件均可机器审计。
+- Markdown 给投资者阅读，JSON 供宿主、cron、notebook 与下游自动化使用。
 
 示例 Agent prompt：
 
 ```text
-Run stock-analysis --market global --format full --emit-evidence.
-Use the Markdown report for the user-facing recap.
-Use evidence_YYYYMMDD.json to verify every strong conclusion before summarizing.
-If a module is missing, say which evidence was unavailable instead of guessing.
+请用 /analyze 深度研究 600519，研究时点为最近一个已完成交易日。
+重点检验当前价格能否被盈利质量、现金转化、股东回报和逆向估值支持。
+缺失证据必须保持缺失，保留路由元数据，并给我投资者备忘录与审计产物路径。
 ```
 
 日常 Agent 工作流见 [examples/agent.md](examples/agent.md)，定时生成报告并上传 Evidence Pack 的 GitHub Actions 示例见 [examples/github-actions-daily-recap.yml](examples/github-actions-daily-recap.yml)。
