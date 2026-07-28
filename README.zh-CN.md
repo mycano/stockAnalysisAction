@@ -27,6 +27,7 @@
 <p align="center">
   <a href="https://github.com/thuquant/awesome-quant"><img alt="Listed in thuquant/awesome-quant" src="https://img.shields.io/badge/listed%20in-thuquant%2Fawesome--quant-2ea44f"></a>
   <a href="https://github.com/leoncuhk/awesome-quant-ai"><img alt="Listed in leoncuhk/awesome-quant-ai" src="https://img.shields.io/badge/listed%20in-leoncuhk%2Fawesome--quant--ai-2ea44f"></a>
+  <a href="https://github.com/georgezouq/awesome-ai-in-finance"><img alt="Listed in georgezouq/awesome-ai-in-finance" src="https://img.shields.io/badge/listed%20in-georgezouq%2Fawesome--ai--in--finance-2ea44f"></a>
   <a href="https://github.com/wangzhe3224/awesome-systematic-trading"><img alt="Listed in wangzhe3224/awesome-systematic-trading" src="https://img.shields.io/badge/listed%20in-wangzhe3224%2Fawesome--systematic--trading-2ea44f"></a>
   <a href="https://github.com/0xNyk/awesome-hermes-agent"><img alt="Listed in 0xNyk/awesome-hermes-agent" src="https://img.shields.io/badge/listed%20in-0xNyk%2Fawesome--hermes--agent-2ea44f"></a>
 </p>
@@ -257,7 +258,7 @@ python3 scripts/sync_agent_entrypoints.py --check
 
 ## 社区
 
-收录与认可：[thuquant/awesome-quant #48](https://github.com/thuquant/awesome-quant/pull/48) · [leoncuhk/awesome-quant-ai #39](https://github.com/leoncuhk/awesome-quant-ai/pull/39) · [awesome-systematic-trading #124](https://github.com/wangzhe3224/awesome-systematic-trading/pull/124) · [awesome-hermes-agent #232](https://github.com/0xNyk/awesome-hermes-agent/pull/232)
+收录与认可：[thuquant/awesome-quant #48](https://github.com/thuquant/awesome-quant/pull/48) · [leoncuhk/awesome-quant-ai #39](https://github.com/leoncuhk/awesome-quant-ai/pull/39) · [awesome-ai-in-finance #183](https://github.com/georgezouq/awesome-ai-in-finance/pull/183) · [awesome-systematic-trading #124](https://github.com/wangzhe3224/awesome-systematic-trading/pull/124) · [awesome-hermes-agent #232](https://github.com/0xNyk/awesome-hermes-agent/pull/232)
 
 欢迎 Issue 和 Pull Request。建议附上具体命令、市场/日期边界，并说明问题属于数据、报告结构、专家框架还是用户交付。
 
