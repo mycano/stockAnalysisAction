@@ -1,48 +1,48 @@
-name: 每日投研 (AdvancingTitans stock-analysis)
-
 # ============================================================
-# 最终版 · 怎么改自选标的
+#  stock-daily.yml —— 每日投研自动化（最终完整版）
 # ------------------------------------------------------------
-# ① 打开仓库 Settings → Secrets and variables → Actions → Variables
-# ② 新建下面三个变量（值改成你自己的池子，逗号分隔）：
+#  怎么改自选标的：
+#    进仓库 Settings → Secrets and variables → Actions → Variables
+#    建三条变量（值改成你自己的，逗号分隔，不带引号）：
+#      STOCK_LIST = 600519,000858,300750,00700.HK,AAPL,NVDA
+#      ETF_LIST   = 510300,159915,518880
+#      FUND_LIST  = 161725,110011,001511
+#    改完下次运行自动生效，不用动这个文件。
 #
-#    STOCK_LIST  → 股票，例：600519,000858,300750,00700.HK,09988.HK,AAPL,NVDA
-#    ETF_LIST    → ETF， 例：510300,159915,518880
-#    FUND_LIST   → 场外基金，例：161725,110011,001511
+#  怎么手动跑：
+#    Actions 页面 → 左侧点这个 workflow → 右上 Run workflow
 #
-# ③ workflow 会自动识别类型并跑对应命令；不想分类就全塞 STOCK_LIST 也行
-# ④ 手动触发时可在 Actions 页面覆盖标的/深度
+#  定时：北京时间 16:00（周一到周五）自动跑
 # ============================================================
+
+name: 每日投研
 
 on:
-  # 北京时间 16:00 (A股盘后) 周一至周五；UTC = 08:00
+  # 北京时间 16:00 = UTC 08:00，仅工作日
   schedule:
     - cron: '0 8 * * 1-5'
+  # 允许网页上手动点按钮触发
   workflow_dispatch:
     inputs:
-      symbols:
-        description: '标的，逗号分隔 (覆盖变量配置)'
-        required: false
-        default: ''
       depth:
-        description: '深度 quick / standard / deep'
+        description: '分析深度 quick / standard / deep'
         required: false
         default: 'standard'
 
+# 权限：写 Issue + 读仓库内容（gh 命令需要）
 permissions:
   issues: write
   contents: read
 
 env:
   TZ: Asia/Shanghai
-  STOCK_HOME: /github/workspace/.young_stock
-  # 默认值（仓库 Variables 未设置时使用）
+  # 以下仅在 Variables 未设置时生效
   DEFAULT_STOCK_LIST: "600519,300750,00700.HK,AAPL,NVDA"
   DEFAULT_ETF_LIST:   "510300,518880"
   DEFAULT_FUND_LIST:  "161725,110011"
 
 jobs:
-  # ========================== Job 1: 盘后市场复盘 ==========================
+  # ======================== 第 1 步：市场复盘 ========================
   market-recap:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -50,42 +50,64 @@ jobs:
       date:  ${{ steps.meta.outputs.date }}
       runid: ${{ steps.meta.outputs.runid }}
     steps:
+      # 拉取仓库代码（gh 命令需要）
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      # 装 Python（用来跑 pip 装 CLI）
+      - name: 安装 Python
+        uses: actions/setup-python@v5
         with:
-          version: "0.11.24"
-          enable-cache: true
+          python-version: '3.12'
 
-      - name: Install young-stock-cli
+      # 装投研 CLI（young-stock-cli 或 stock-analysis 二选一）
+      - name: 安装投研工具
         run: |
-          uv tool install young-stock-cli
-          uv tool run young --help | head -5
+          pip install -q young-stock-cli 2>/dev/null \
+            || pip install -q stock-analysis 2>/dev/null \
+            || echo "WARN: 未装到 CLI，后续会跳过分析"
+          echo "--- 可用命令 ---"
+          command -v young         && echo "✅ young"
+          command -v stock-analysis && echo "✅ stock-analysis"
 
-      - name: Meta
+      # 记录日期和 run id，供后续步骤用
+      - name: 记录元信息
         id: meta
         run: |
           DATE=$(date +%F)
-          echo "date=$DATE" >> $GITHUB_OUTPUT
+          echo "date=$DATE"        >> $GITHUB_OUTPUT
           echo "runid=${{ github.run_id }}" >> $GITHUB_OUTPUT
           mkdir -p reports/market
+          echo "📅 今日日期: $DATE"
 
+      # A 股盘后
       - name: A股盘后复盘
         continue-on-error: true
         run: |
           DATE=${{ steps.meta.outputs.date }}
-          uv tool run young daily --only A股 --quick \
-            > reports/market/A股_${DATE}.md 2>&1 || true
+          if command -v young &> /dev/null; then
+            young daily --only A股 --quick > reports/market/A股_${DATE}.md 2>&1 || true
+          elif command -v stock-analysis &> /dev/null; then
+            stock-analysis --market daily --only A股 --quick > reports/market/A股_${DATE}.md 2>&1 || true
+          else
+            echo "_CLI 未安装，跳过 A股复盘_" > reports/market/A股_${DATE}.md
+          fi
+          echo "✅ A股复盘完成"
 
+      # 全球市场
       - name: 全球市场快照
         continue-on-error: true
         run: |
           DATE=${{ steps.meta.outputs.date }}
-          uv tool run young daily --only 全球 --quick \
-            > reports/market/全球_${DATE}.md 2>&1 || true
+          if command -v young &> /dev/null; then
+            young daily --only 全球 --quick > reports/market/全球_${DATE}.md 2>&1 || true
+          elif command -v stock-analysis &> /dev/null; then
+            stock-analysis --market daily --only 全球 --quick > reports/market/全球_${DATE}.md 2>&1 || true
+          else
+            echo "_CLI 未安装，跳过全球快照_" > reports/market/全球_${DATE}.md
+          fi
+          echo "✅ 全球快照完成"
 
-  # ========================== Job 2: 自选标的分析 ==========================
+  # ======================== 第 2 步：个股/ETF/基金分析 ========================
   deep-dive:
     needs: market-recap
     runs-on: ubuntu-latest
@@ -93,99 +115,82 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "0.11.24"
-          enable-cache: true
+      - name: 安装投研工具
+        run: |
+          pip install -q young-stock-cli 2>/dev/null \
+            || pip install -q stock-analysis 2>/dev/null || true
 
-      - name: Install young-stock-cli
-        run: uv tool install young-stock-cli
-
-      # ---------- 读取配置：手动输入 > Variables > 默认值 ----------
-      - name: Resolve config
+      # 读配置：优先用 Variables，没有就 fallback 到文件顶部 env 里的默认值
+      - name: 读取自选标的配置
         id: cfg
         run: |
-          # 手动触发时优先用 inputs
-          if [ -n "${{ github.event.inputs.symbols }}" ]; then
-            echo "mode=manual" >> $GITHUB_OUTPUT
-            echo "${{ github.event.inputs.symbols }}" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' \
-              | jq -R . | jq -s '{stocks:., etfs:[], funds:[]}' > /tmp/cfg.json
-          else
-            echo "mode=var" >> $GITHUB_OUTPUT
-            STOCKS="${{ vars.STOCK_LIST || env.DEFAULT_STOCK_LIST }}"
-            ETFS="${{ vars.ETF_LIST || env.DEFAULT_ETF_LIST }}"
-            FUNDS="${{ vars.FUND_LIST || env.DEFAULT_FUND_LIST }}"
-            jq -n \
-              --arg s "$STOCKS" --arg e "$ETFS" --arg f "$FUNDS" \
-              '{stocks: ($s | split(",") | map(gsub("^\\s+|\\s+$";"")) | map(select(.!=""))),
-                etfs:   ($e | split(",") | map(gsub("^\\s+|\\s+$";"")) | map(select(.!=""))),
-                funds:  ($f | split(",") | map(gsub("^\\s+|\\s+$";"")) | map(select(.!="")))}' \
-              > /tmp/cfg.json
-          fi
+          STOCKS="${{ vars.STOCK_LIST || env.DEFAULT_STOCK_LIST }}"
+          ETFS="${{ vars.ETF_LIST   || env.DEFAULT_ETF_LIST }}"
+          FUNDS="${{ vars.FUND_LIST  || env.DEFAULT_FUND_LIST }}"
+          echo "📋 股票: $STOCKS"
+          echo "📋 ETF:   $ETFS"
+          echo "📋 基金:  $FUNDS"
+          jq -n \
+            --arg s "$STOCKS" --arg e "$ETFS" --arg f "$FUNDS" \
+            '{stocks: ($s | split(",") | map(gsub("^\\s+|\\s+$";"")) | map(select(.!=""))),
+              etfs:   ($e | split(",") | map(gsub("^\\s+|\\s+$";"")) | map(select(.!=""))),
+              funds:  ($f | split(",") | map(gsub("^\\s+|\\s+$";"")) | map(select(.!="")))}' \
+            > /tmp/cfg.json
+          echo "--- 配置 JSON ---"
           cat /tmp/cfg.json
 
-      # ---------- 自动判别 asset-type 并跑分析 ----------
-      - name: Analyze stocks
-        id: run-stocks
+      # 分析股票
+      - name: 分析股票
         continue-on-error: true
         run: |
           DEPTH="${{ github.event.inputs.depth || 'standard' }}"
           DATE=${{ needs.market-recap.outputs.date }}
           mkdir -p reports/stocks
+          CLI=$(command -v young || command -v stock-analysis)
+          if [ -z "$CLI" ]; then echo "⚠️ 无 CLI，跳过"; exit 0; fi
           jq -r '.stocks[]' /tmp/cfg.json | while read -r sym; do
             [ -z "$sym" ] && continue
-            echo "==== 📈 STOCK $sym ($DEPTH) ===="
-            case "$DEPTH" in
-              quick)    FLAG="" ;;
-              standard) FLAG="--llm" ;;
-              deep)     FLAG="--llm --lens buffett,munger,duan" ;;
-              *)        FLAG="--llm" ;;
-            esac
+            echo "==== 📈 分析 $sym ($DEPTH) ===="
             safe=$(echo "$sym" | tr -d '.')
-            uv tool run young stock "$sym" $FLAG \
+            "$CLI" --market research --symbol "$sym" --asset-type company --depth "$DEPTH" \
               > "reports/stocks/${safe}_${DATE}.md" 2> "reports/stocks/${safe}_err.log" \
-              || echo "WARN: $sym failed"
+              || echo "  ⚠️ $sym 失败，见 err.log"
           done
 
-      - name: Analyze ETFs
-        id: run-etfs
+      # 分析 ETF
+      - name: 分析 ETF
         continue-on-error: true
         run: |
           DEPTH="${{ github.event.inputs.depth || 'standard' }}"
           DATE=${{ needs.market-recap.outputs.date }}
           mkdir -p reports/etfs
+          CLI=$(command -v young || command -v stock-analysis)
+          if [ -z "$CLI" ]; then echo "⚠️ 无 CLI，跳过"; exit 0; fi
           jq -r '.etfs[]' /tmp/cfg.json | while read -r sym; do
             [ -z "$sym" ] && continue
-            echo "==== 🧩 ETF $sym ($DEPTH) ===="
+            echo "==== 🧩 分析 $sym ===="
             safe=$(echo "$sym" | tr -d '.')
-            # ETF 用 research + asset-type etf；quick 模式直接 snapshot
-            if [ "$DEPTH" = "quick" ]; then
-              uv tool run young stock-snapshot "$sym" \
-                > "reports/etfs/${safe}_${DATE}.md" 2>&1 || true
-            else
-              uv tool run young stock "$sym" --asset-type etf $FLAG \
-                > "reports/etfs/${safe}_${DATE}.md" 2>&1 || true
-            fi
+            "$CLI" --market research --symbol "$sym" --asset-type etf --depth "$DEPTH" \
+              > "reports/etfs/${safe}_${DATE}.md" 2>&1 || true
           done
 
-      - name: Analyze funds
-        id: run-funds
+      # 分析基金
+      - name: 分析基金
         continue-on-error: true
         run: |
           DATE=${{ needs.market-recap.outputs.date }}
           mkdir -p reports/funds
+          CLI=$(command -v young || command -v stock-analysis)
+          if [ -z "$CLI" ]; then echo "⚠️ 无 CLI，跳过"; exit 0; fi
           jq -r '.funds[]' /tmp/cfg.json | while read -r sym; do
             [ -z "$sym" ] && continue
-            echo "==== 🏦 FUND $sym ===="
+            echo "==== 🏦 分析 $sym ===="
             safe=$(echo "$sym" | tr -d '.')
-            # 基金用 research + asset-type fund；场外基金 NAV 通常晚间更新
-            uv tool run young stock "$sym" --asset-type fund \
-              > "reports/funds/${safe}_${DATE}.md" 2>&1 \
-              || echo "WARN: fund $sym failed"
+            "$CLI" --market research --symbol "$sym" --asset-type fund \
+              > "reports/funds/${safe}_${DATE}.md" 2>&1 || true
           done
 
-  # ========================== Job 3: 汇总 + Issue + Artifact ==========================
+  # ======================== 第 3 步：汇总 + 写 Issue + 传 Artifact ========================
   summarize:
     needs: [market-recap, deep-dive]
     runs-on: ubuntu-latest
@@ -193,14 +198,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download reports from previous jobs
-        uses: actions/download-artifact@v4
-        with:
-          path: reports-incoming
-        continue-on-error: true
-
-      # 把分类目录里的报告各自取摘要
-      - name: Build daily digest
+      # 拼出今日摘要（写进 reports/digest.md）
+      - name: 生成今日摘要
         id: digest
         run: |
           DATE=${{ needs.market-recap.outputs.date }}
@@ -223,7 +222,6 @@ jobs:
             echo "</details>"
             echo ""
 
-            # --- 股票 ---
             echo "### 📈 股票"
             for f in reports/stocks/*_${DATE}.md; do
               [ -f "$f" ] || continue
@@ -235,7 +233,6 @@ jobs:
               echo ""
             done
 
-            # --- ETF ---
             echo "### 🧩 ETF"
             for f in reports/etfs/*_${DATE}.md; do
               [ -f "$f" ] || continue
@@ -247,7 +244,6 @@ jobs:
               echo ""
             done
 
-            # --- 基金 ---
             echo "### 🏦 基金"
             for f in reports/funds/*_${DATE}.md; do
               [ -f "$f" ] || continue
@@ -259,10 +255,12 @@ jobs:
               echo ""
             done
           } > reports/digest.md
-          DIGEST=$(python3 -c 'import sys,json;print(json.dumps(sys.stdin.read()))' < reports/digest.md)
-          echo "body=$DIGEST" >> $GITHUB_OUTPUT
+          echo "✅ 摘要已生成: reports/digest.md"
+          echo "--- 摘要预览（前 20 行）---"
+          head -20 reports/digest.md
 
-      - name: Upload full evidence pack
+      # 上传完整报告（保留 30 天）
+      - name: 上传完整证据包
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -270,58 +268,51 @@ jobs:
           path: reports/
           retention-days: 30
 
-      - name: Find or create digest issue
+      # ========== 关键修复：用 gh CLI 操作 Issue（不依赖任何第三方 Action）==========
+      # 原理：
+      #   1) gh issue list --json number -q '.[0].number'  查已存在的日报 Issue 编号
+      #   2) 如果没查到，gh issue create 创建，它会在 stdout 打印 URL（含编号）
+      #   3) 用 sed 从 URL 里抠出纯数字编号
+      #   4) gh issue comment <编号> --body-file 追加今日摘要
+      - name: 查找或创建日报 Issue
         id: find
-        uses: peter-evans/find-issue@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: "📈 投研日报（每日自动追加）"
-          state: open
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 1) 查找标题匹配的开放 Issue
+          ISSUE_NUM=$(gh issue list --search "投研日报" --state open --json number -q '.[0].number // empty')
+          echo "查找结果: '$ISSUE_NUM'"
 
-      - name: Create issue if missing
-        if: steps.find.outputs.issue-number == ''
-        uses: peter-evans/create-issue@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: "📈 投研日报（每日自动追加）"
-          body: |
-            # 投研日报
+          # 2) 没找到就创建
+          if [ -z "$ISSUE_NUM" ]; then
+            echo "未找到日报 Issue，正在创建..."
+            URL=$(gh issue create \
+              --title "📈 投研日报（每日自动追加）" \
+              --body  "由 GitHub Actions 自动维护，每天盘后把摘要追加到评论里。" \
+              --label "research,automated")
+            echo "创建返回: $URL"
+            # 从 URL 末尾抠出数字编号（URL 形如 https://.../issues/7）
+            ISSUE_NUM=$(echo "$URL" | sed 's|.*/||')
+          fi
 
-            由 GitHub Actions 自动维护。`young-stock-cli` 每天盘后把摘要**追加**到这条 Issue 的第一条评论里，方便在元宝里做**日环比比对**。
+          echo "✅ 日报 Issue 编号: $ISSUE_NUM"
+          echo "issue_number=$ISSUE_NUM" >> $GITHUB_OUTPUT
 
-            ## 怎么改自选标的
-            仓库 `Settings → Secrets and variables → Actions → Variables` 新建/修改：
-            - `STOCK_LIST`：股票代码，逗号分隔
-            - `ETF_LIST`：ETF 代码，逗号分隔
-            - `FUND_LIST`：场外基金代码，逗号分隔
+      - name: 追加今日摘要到 Issue 评论
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # 把 digest.md 的内容作为评论追加到 Issue
+          gh issue comment ${{ steps.find.outputs.issue_number }} \
+            --body-file reports/digest.md
+          echo "✅ 摘要已追加到 Issue #${{ steps.find.outputs.issue_number }}"
 
-            修改后下一次运行自动生效，无需改 yaml。
-
-            ## 怎么用（日环比）
-            1. 复制**相邻两天**同一标的的摘要段落
-            2. 一起发给元宝，用文末给的 prompt
-            3. 完整报告见每次 workflow 的 Artifact（保留 30 天）
-
-            > ⚠️ 纯研究工具，非投资建议。缺数据处原样保留，不补零。
-            > 🏦 场外基金 NAV 通常晚间更新，盘后 16:00 跑到的可能是估算值。
-          labels: research,automated
-
-      - name: Append daily digest
-        uses: peter-evans/create-or-update-comment@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ steps.find.outputs.issue-number }}
-          body: ${{ steps.digest.outputs.body }}
-          edit-mode: append
-          append-separator: newline
-
-      - name: Failure notice
+      - name: 失败时发告警评论
         if: needs.deep-dive.result == 'failure' || needs.market-recap.result == 'failure'
-        uses: peter-evans/create-or-update-comment@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ steps.find.outputs.issue-number }}
-          body: |
-            ### ⚠️ ${{ needs.market-recap.outputs.date }} 运行异常
-            部分标的分析失败，请查看 workflow log 与 Artifact。
-          edit-mode: append
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ steps.find.outputs.issue_number }} \
+            --body "### ⚠️ ${{ needs.market-recap.outputs.date }} 运行异常
+部分标的分析失败，请查看 workflow log 与 Artifact。"
+          echo "⚠️ 已发失败告警"
