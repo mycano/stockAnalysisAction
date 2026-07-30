@@ -62,6 +62,7 @@ jobs:
           # stock-analysis 用 uv 装（深度研究段才用）
           pip install uv || true
           uv tool install stock-analysis 2>/dev/null || true
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
           echo "--- 检查命令 ---"
           command -v young          && echo "✅ young"  || echo "❌ young 未找到"
           command -v stock-analysis && echo "✅ stock-analysis"  || echo "❌ stock-analysis 未找到"
