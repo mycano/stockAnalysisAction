@@ -63,8 +63,8 @@ jobs:
           pip install uv || true
           uv tool install stock-analysis 2>/dev/null || true
           echo "--- 检查命令 ---"
-          command -v young          && echo "✅ young"
-          command -v stock-analysis && echo "✅ stock-analysis"
+          command -v young          && echo "✅ young"  || echo "❌ young 未找到"
+          command -v stock-analysis && echo "✅ stock-analysis"  || echo "❌ stock-analysis 未找到"
 
       # ========== 第 2 步：判断今天跑哪一段 ==========
       - name: 判断运行模式
