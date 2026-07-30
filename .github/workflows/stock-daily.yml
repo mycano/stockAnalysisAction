@@ -1,22 +1,35 @@
 # ============================================================
-#  stock-daily.yml —— 超简化版（确保能跑通）
+#  stock-daily.yml —— 最终版（双段分工 + DeepSeek）
 # ------------------------------------------------------------
-#  只做三件事：
-#    1) 跑市场复盘
-#    2) 跑自选标的分析
-#    3) 把结果写成 Issue 评论
+#  工作日 (周一至周五 北京时间 16:00)
+#    → young a / young global / young stock / young fund
+#    → 不调 LLM，纯公共数据，零 API 费用
 #
-#  零第三方 Action 依赖，全部用官方 gh 命令
+#  周六 (北京时间 16:00) 或 手动勾选 run_deep
+#    → young daily --llm（DeepSeek 驱动）
+#    → stock-analysis --market research --emit-evidence（深度证据包）
+#
 #  自选标的在 Settings → Variables 里改：
 #    STOCK_LIST / ETF_LIST / FUND_LIST
+#
+#  Secrets 里要加：
+#    DEEPSEEK_API_KEY = sk-xxxxxxxx（DeepSeek 控制台获取）
 # ============================================================
 
-name: 每日投研
+name: 每日投研 (young 盘后 + 周六深度)
 
 on:
+  # 工作日 16:00 北京时间 = UTC 08:00 → 只跑 young 盘后
   schedule:
-    - cron: '0 8 * * 1-5'   # 北京时间 16:00，周一至周五
+    - cron: '0 8 * * 1-5'
+  # 周六 16:00 北京时间 = UTC 08:00 → 盘后 + 深度一起跑
+    - cron: '0 8 * * 6'
   workflow_dispatch:
+    inputs:
+      run_deep:
+        description: '强制跑深度研究 (young --llm + stock-analysis)'
+        type: boolean
+        default: false
 
 permissions:
   issues: write
@@ -24,155 +37,176 @@ permissions:
 
 env:
   TZ: Asia/Shanghai
+  STOCK_LIST: ${{ vars.STOCK_LIST }}
+  ETF_LIST:   ${{ vars.ETF_LIST }}
+  FUND_LIST:  ${{ vars.FUND_LIST }}
 
 jobs:
-  # ======================== 分析 + 汇总（单个 job，最简单）========================
   research:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
-      # 第 1 步：拉取仓库代码
-      - name: 拉取代码
+      # ========== 第 1 步：拉代码 + 装环境 ==========
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # 第 2 步：装 Python 和投研工具
-      - name: 安装环境
-        run: |
-          sudo apt-get update -qq
-          pip install -q young-stock-cli 2>/dev/null || pip install -q stock-analysis 2>/dev/null || true
-          echo "--- 检查 CLI ---"
-          command -v young         && echo "✅ young 已安装"         || echo "⚠️ young 未安装"
-          command -v stock-analysis && echo "✅ stock-analysis 已安装" || echo "⚠️ stock-analysis 未安装"
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-      # 第 3 步：跑市场复盘
-      - name: 市场复盘
-        continue-on-error: true
+      - name: 安装 CLIs
+        run: |
+          python -m pip install --upgrade pip
+          pip install young-stock-cli
+          # stock-analysis 用 uv 装（深度研究段才用）
+          pip install uv || true
+          uv tool install stock-analysis 2>/dev/null || true
+          echo "--- 检查命令 ---"
+          command -v young          && echo "✅ young"
+          command -v stock-analysis && echo "✅ stock-analysis"
+
+      # ========== 第 2 步：判断今天跑哪一段 ==========
+      - name: 判断运行模式
+        id: mode
+        run: |
+          DOW=$(date +%u)   # 1=Mon ... 6=Sat 7=Sun
+          if [ "$DOW" = "6" ] || [ "${{ inputs.run_deep }}" = "true" ]; then
+            echo "deep=true"  >> $GITHUB_OUTPUT
+            echo "🧠 今日跑深度模式 (young --llm + stock-analysis)"
+          else
+            echo "deep=false" >> $GITHUB_OUTPUT
+            echo "📊 今日跑盘后速览模式 (无 LLM)"
+          fi
+
+      # ========== 第 3 步：young 盘后速览（每天都跑）==========
+      - name: Young 盘后速览 (工作日必跑，零 LLM 费用)
+        id: young
         run: |
           DATE=$(date +%F)
           mkdir -p reports
-          echo "## 📊 投研日报 $DATE" > reports/digest.md
-          echo "" >> reports/digest.md
+          {
+            echo "### 📈 A股盘后 ($DATE)"
+            echo '```'
+            young a --no-news 2>/dev/null || echo "young a 失败"
+            echo '```'
+            echo ""
+            echo "### 🌐 全球快照 ($DATE)"
+            echo '```'
+            young global --no-news 2>/dev/null || echo "young global 失败"
+            echo '```'
+            echo ""
+            echo "### 🔍 自选股票"
+            IFS=',' read -ra S <<< "$STOCK_LIST"
+            for s in "${S[@]}"; do
+              s=$(echo "$s" | xargs); [ -z "$s" ] && continue
+              echo "**$s**"
+              echo '```'
+              young stock "$s" --no-news 2>/dev/null || echo "young stock $s 失败"
+              echo '```'
+            done
+            echo ""
+            echo "### 🏦 自选基金"
+            IFS=',' read -ra F <<< "$FUND_LIST"
+            for f in "${F[@]}"; do
+              f=$(echo "$f" | xargs); [ -z "$f" ] && continue
+              echo "**基金 $f**"
+              echo '```'
+              young fund "$f" --no-news 2>/dev/null || echo "young fund $f 失败"
+              echo '```'
+            done
+          } > reports/young-$DATE.md
+          echo "young_done=true" >> $GITHUB_OUTPUT
+          echo "✅ young 盘后速览完成"
 
-          echo "### 📈 A股盘后" >> reports/digest.md
-          if command -v young &> /dev/null; then
-            young daily --only A股 --quick >> reports/digest.md 2>&1 || true
-          elif command -v stock-analysis &> /dev/null; then
-            stock-analysis --market daily --only A股 --quick >> reports/digest.md 2>&1 || true
-          else
-            echo "_CLI 未安装_" >> reports/digest.md
-          fi
-          echo "" >> reports/digest.md
+      # ========== 第 4 步：深度研究（仅周六 / 手动强制）==========
+      - name: Young --llm 深度复盘 (DeepSeek 驱动)
+        id: deep_young
+        if: steps.mode.outputs.deep == 'true'
+        env:
+          # DeepSeek 配置（Secrets 里加 DEEPSEEK_API_KEY）
+          OPENAI_API_KEY:  ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENAI_BASE_URL: https://api.deepseek.com/v1
+          OPENAI_MODEL:    deepseek-chat
+        run: |
+          DATE=$(date +%F)
+          mkdir -p reports/deep
+          echo "🧠 调用 DeepSeek 做 young 深度复盘 ..."
+          {
+            echo "### 🧠 Young 深度复盘 ($DATE, DeepSeek)"
+            echo '```'
+            # --llm 让 young 用 LLM 把当天数据讲成人话
+            young daily --llm --format summary 2>/dev/null \
+              || echo "young daily --llm 失败（检查 DEEPSEEK_API_KEY）"
+            echo '```'
+          } > reports/deep/young-llm-$DATE.md
+          echo "✅ young --llm 完成"
 
-          echo "### 🌐 全球快照" >> reports/digest.md
-          if command -v young &> /dev/null; then
-            young daily --only 全球 --quick >> reports/digest.md 2>&1 || true
-          elif command -v stock-analysis &> /dev/null; then
-            stock-analysis --market daily --only 全球 --quick >> reports/digest.md 2>&1 || true
-          else
-            echo "_CLI 未安装_" >> reports/digest.md
-          fi
-          echo "" >> reports/digest.md
-          echo "✅ 市场复盘完成"
+      - name: stock-analysis 深度研究 (周六/强制)
+        id: deep_sa
+        if: steps.mode.outputs.deep == 'true'
+        run: |
+          DATE=$(date +%F)
+          mkdir -p reports/deep
+          echo "🔬 跑 stock-analysis 正向+反向估值 ..."
+          {
+            echo "### 🔬 stock-analysis 深度研究 ($DATE)"
+            IFS=',' read -ra S <<< "$STOCK_LIST"
+            for s in "${S[@]}"; do
+              s=$(echo "$s" | xargs); [ -z "$s" ] && continue
+              echo "#### $s"
+              echo '```'
+              stock-analysis --market research \
+                --symbol "$s" \
+                --emit-evidence \
+                --depth standard 2>/dev/null \
+                || echo "stock-analysis $s 失败（可能未安装）"
+              echo '```'
+            done
+          } > reports/deep/sa-research-$DATE.md
+          echo "✅ stock-analysis 完成"
 
-      # 第 4 步：跑自选标的（股票 + ETF + 基金）
-      - name: 分析自选标的
-        continue-on-error: true
+      # ========== 第 5 步：拼接 + 写 Issue ==========
+      - name: 拼接日报并写入 Issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           DATE=$(date +%F)
-          mkdir -p reports
+          TITLE="📈 投研日报 $DATE"
+          BODY=""
 
-          # 读配置：Variables > 默认值
-          STOCKS="${{ vars.STOCK_LIST }}"
-          ETFS="${{ vars.ETF_LIST }}"
-          FUNDS="${{ vars.FUND_LIST }}"
-          [ -z "$STOCKS" ] && STOCKS="600519,300750,AAPL,NVDA"
-          [ -z "$ETFS" ]   && ETFS="510300"
-          [ -z "$FUNDS" ]  && FUNDS="161725"
+          # 先贴 young 盘后
+          BODY+=$'\n'"$(cat reports/young-$DATE.md)"$'\n'
 
-          echo "📋 股票: $STOCKS"
-          echo "📋 ETF: $ETFS"
-          echo "📋 基金: $FUNDS"
-
-          CLI=$(command -v young || command -v stock-analysis)
-          if [ -z "$CLI" ]; then
-            echo "⚠️ 没有可用的 CLI，跳过标的分析"
-            echo "### ⚠️ 标的分析跳过" >> reports/digest.md
-            echo "_未检测到 young 或 stock-analysis 命令_" >> reports/digest.md
-            exit 0
+          # 深度段（仅周六/强制时存在）
+          if [ -f "reports/deep/young-llm-$DATE.md" ]; then
+            BODY+=$'\n'"$(cat reports/deep/young-llm-$DATE.md)"$'\n'
+          fi
+          if [ -f "reports/deep/sa-research-$DATE.md" ]; then
+            BODY+=$'\n'"$(cat reports/deep/sa-research-$DATE.md)"$'\n'
           fi
 
-          echo "### 📈 股票分析" >> reports/digest.md
-          echo "$STOCKS" | tr ',' '\n' | while read -r sym; do
-            sym=$(echo "$sym" | xargs)
-            [ -z "$sym" ] && continue
-            echo "  → 分析 $sym ..."
-            echo "#### $sym" >> reports/digest.md
-            "$CLI" --market research --symbol "$sym" --asset-type company --depth standard >> reports/digest.md 2>&1 || echo "    ⚠️ $sym 失败"
-            echo "" >> reports/digest.md
-          done
+          echo "=== 最终日报预览（前 40 行）==="
+          echo "$BODY" | head -40
 
-          echo "### 🧩 ETF 分析" >> reports/digest.md
-          echo "$ETFS" | tr ',' '\n' | while read -r sym; do
-            sym=$(echo "$sym" | xargs)
-            [ -z "$sym" ] && continue
-            echo "  → 分析 $sym ..."
-            echo "#### $sym" >> reports/digest.md
-            "$CLI" --market research --symbol "$sym" --asset-type etf --depth quick >> reports/digest.md 2>&1 || true
-            echo "" >> reports/digest.md
-          done
-
-          echo "### 🏦 基金分析" >> reports/digest.md
-          echo "$FUNDS" | tr ',' '\n' | while read -r sym; do
-            sym=$(echo "$sym" | xargs)
-            [ -z "$sym" ] && continue
-            echo "  → 分析 $sym ..."
-            echo "#### $sym" >> reports/digest.md
-            "$CLI" --market research --symbol "$sym" --asset-type fund >> reports/digest.md 2>&1 || true
-            echo "" >> reports/digest.md
-          done
-
-          echo "✅ 标的分析完成"
-
-      # 第 5 步：查找或创建日报 Issue（用 gh CLI，不用任何第三方 Action）
-      - name: 查找或创建日报 Issue
-        id: find
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # 查找已存在的日报 Issue（用 gh issue list，支持 --json）
-          ISSUE_NUM=$(gh issue list --search "投研日报" --state open --json number -q '.[0].number // empty')
-          echo "查找结果: '$ISSUE_NUM'"
-
-          # 没找到就创建（gh issue create 不支持 --json，直接打印 URL）
-          if [ -z "$ISSUE_NUM" ]; then
-            echo "未找到，正在创建..."
-            URL=$(gh issue create \
-              --title "投研日报" \
-              --body "由 GitHub Actions 自动维护，每天盘后追加摘要。")
-            echo "创建返回: $URL"
-            # 从 URL 末尾抠出数字编号
-            ISSUE_NUM=$(echo "$URL" | grep -o '[0-9]\+$')
+          # 查找/创建 Issue
+          NUM=$(gh issue list --search "$TITLE in:title" --state open \
+                --json number --jq '.[0].number // empty')
+          if [ -z "$NUM" ]; then
+            echo "创建新日报 Issue ..."
+            URL=$(gh issue create --title "$TITLE" --body "$BODY" --label "research,automated")
+            NUM=$(echo "$URL" | grep -o '[0-9]\+$')
+          else
+            echo "追加到现有日报 Issue #$NUM ..."
+            gh issue comment "$NUM" --body "$BODY"
           fi
+          echo "✅ 日报已写入 Issue #$NUM"
 
-          echo "✅ Issue 编号: $ISSUE_NUM"
-          echo "issue_number=$ISSUE_NUM" >> $GITHUB_OUTPUT
-
-      # 第 6 步：追加今日摘要到 Issue 评论
-      - name: 追加摘要到 Issue
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "📤 正在发送摘要到 Issue #${{ steps.find.outputs.issue_number }} ..."
-          gh issue comment ${{ steps.find.outputs.issue_number }} --body-file reports/digest.md
-          echo "✅ 摘要已发送"
-
-      # 第 7 步：上传完整报告（保留 7 天）
-      - name: 上传报告
+      # ========== 第 6 步：上传完整证据包 ==========
+      - name: 上传 Artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: daily-report-${{ github.run_id }}
+          name: stock-reports-${{ github.run_id }}
           path: reports/
-          retention-days: 7
+          retention-days: 14
