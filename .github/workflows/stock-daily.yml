@@ -193,6 +193,9 @@ jobs:
           NUM=$(gh issue list --search "$TITLE in:title" --state open \
                 --json number --jq '.[0].number // empty')
           if [ -z "$NUM" ]; then
+            
+            gh label create "research" --color "0E8A16" || true
+            gh label create "automated" --color "1D76DB" || true
             echo "创建新日报 Issue ..."
             URL=$(gh issue create --title "$TITLE" --body "$BODY" --label "research,automated")
             NUM=$(echo "$URL" | grep -o '[0-9]\+$')
