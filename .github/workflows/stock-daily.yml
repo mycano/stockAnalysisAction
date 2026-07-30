@@ -131,7 +131,7 @@ jobs:
             s=$(echo "$s" | xargs)
             [ -z "$s" ] && continue
             echo "👀 watch stock $s"
-            young watchlist add "$s"
+            young profile add-stock "$s"
           done
 
           # 关注基金
@@ -140,7 +140,7 @@ jobs:
             f=$(echo "$f" | xargs)
             [ -z "$f" ] && continue
             echo "👀 watch fund $f"
-            young watchlist add "$f"
+            young profile add-fund "$f"
           done
 
           # 验证
