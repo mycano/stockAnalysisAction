@@ -128,7 +128,7 @@ jobs:
           young profile clear-funds || true
 
           # 关注股票
-          IFS=';' read -ra ROWS <<< "${{ vars.STOCK_HOLDINGS }}"
+          IFS=';' read -ra ROWS <<< "${{ secrets.STOCK_HOLDINGS }}"
           for row in "${ROWS[@]}"; do
             [ -z "$row" ] && continue
             sym=$(echo "$row" | cut -d',' -f1 | xargs)
@@ -139,7 +139,7 @@ jobs:
           done
 
           # 关注基金
-          IFS=';' read -ra ROWS <<< "${{ vars.FUND_HOLDINGS }}"
+          IFS=';' read -ra ROWS <<< "${{ secrets.FUND_HOLDINGS }}"
           for row in "${ROWS[@]}"; do
             [ -z "$row" ] && continue
             sym=$(echo "$row" | cut -d',' -f1 | xargs)
@@ -149,8 +149,6 @@ jobs:
             young profile add-fund "$sym" --buy-date "$dt" --quantity "$qty"
           done
 
-          # 验证
-          young watchlist list
       # ========== 第 4 步：深度研究（仅周六 / 手动强制）==========
       - name: Young --llm 深度复盘 (DeepSeek 驱动)
         id: deep_young
