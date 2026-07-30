@@ -42,7 +42,7 @@ env:
   FUND_LIST:  ${{ vars.FUND_LIST }}
 
 jobs:
-  create_env:
+  analysis_fund:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -62,6 +62,7 @@ jobs:
           # stock-analysis 用 uv 装（深度研究段才用）
           pip install uv || true
           uv tool install stock-analysis 2>/dev/null || true
+          uv tool install stock-analysis
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           export PATH="$HOME/.local/bin:$PATH"
           echo "----export success-----"
