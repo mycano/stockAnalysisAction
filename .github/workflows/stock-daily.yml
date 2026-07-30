@@ -42,7 +42,7 @@ env:
   FUND_LIST:  ${{ vars.FUND_LIST }}
 
 jobs:
-  research:
+  create_env:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -193,9 +193,9 @@ jobs:
           NUM=$(gh issue list --search "$TITLE in:title" --state open \
                 --json number --jq '.[0].number // empty')
           if [ -z "$NUM" ]; then
-            
-            gh label create "research" --color "0E8A16" || true
-            gh label create "automated" --color "1D76DB" || true
+            # 2>&1 重定向错误，grep -v 过滤掉 "already exists" 的提示，最后 || true 兜底
+            gh label create "research" --color "0E8A16" 2>&1 | grep -v "already exists" || true
+            gh label create "automated" --color "1D76DB" 2>&1 | grep -v "already exists" || true
             echo "创建新日报 Issue ..."
             URL=$(gh issue create --title "$TITLE" --body "$BODY" --label "research,automated")
             NUM=$(echo "$URL" | grep -o '[0-9]\+$')
