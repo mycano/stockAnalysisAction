@@ -1,0 +1,302 @@
+# ============================================================
+#  stock-daily.yml —— 最终版（多 Step 拆分 + DeepSeek）
+# ------------------------------------------------------------
+#  工作日 (周一至周五 北京时间 16:00)
+#    → young a / young global / young stock / young fund
+#    → 不调 LLM，纯公共数据，零 API 费用
+#
+#  周六 (北京时间 16:00) 或 手动勾选 run_deep
+#    → young daily --llm（DeepSeek 驱动）
+#    → stock-analysis --market research --emit-evidence
+#
+#  自选标的在 Settings → Variables 里改：
+#    STOCK_LIST / ETF_LIST / FUND_LIST
+#
+#  Secrets 里要加：
+#    DEEPSEEK_API_KEY = sk-xxxxxxxx
+# ============================================================
+
+name: 每日投研 (young 盘后 + 周六深度)
+
+on:
+  # 工作日 16:00 北京时间 = UTC 08:00 → 只跑 young 盘后
+  schedule:
+    - cron: '0 8 * * 1-5'
+  # 周六 16:00 北京时间 = UTC 08:00 → 盘后 + 深度一起跑
+    - cron: '0 8 * * 6'
+  workflow_dispatch:
+    inputs:
+      run_deep:
+        description: '强制跑深度研究 (young --llm + stock-analysis)'
+        type: boolean
+        default: false
+
+permissions:
+  issues: write
+  contents: read
+
+env:
+  TZ: Asia/Shanghai
+  STOCK_LIST: ${{ vars.STOCK_LIST }}
+  ETF_LIST:   ${{ vars.ETF_LIST }}
+  FUND_LIST:  ${{ vars.FUND_LIST }}
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+
+      # ===================== 第 1 步：环境准备 =====================
+      - name: 1-1 Checkout 代码
+        uses: actions/checkout@v4
+
+      - name: 1-2 安装 Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 1-3 安装 young-stock-cli
+        run: |
+          python -m pip install --upgrade pip
+          pip install young-stock-cli
+          command -v young && echo "✅ young 已安装" || echo "❌ young 未找到"
+
+      - name: 1-4 安装 stock-analysis (git)
+        run: |
+          pip install uv || true
+          # 从 GitHub 源码装（PyPI 上没有同名包）
+          pip install "git+https://github.com/AdvancingTitans/stock-analysis.git"
+          command -v stock-analysis && echo "✅ stock-analysis 已安装" || echo "⚠️ stock-analysis 未找到（深度段会跳过）"
+
+      # ===================== 第 2 步：判断运行模式 =====================
+      - name: 2-1 判断今天跑哪一段
+        id: mode
+        run: |
+          DOW=$(date +%u)   # 1=Mon ... 6=Sat 7=Sun
+
+          # 兼容手动触发：inputs.run_deep 为空时按周六判断
+          RUN_DEEP_INPUT="${{ inputs.run_deep }}"
+          if [ -z "$RUN_DEEP_INPUT" ]; then
+            RUN_DEEP_INPUT="false"
+          fi
+
+          if [ "$DOW" = "6" ] || [ "$RUN_DEEP_INPUT" = "true" ]; then
+            echo "deep=true"  >> "$GITHUB_OUTPUT"
+            echo "🧠 今日跑深度模式 (young --llm + stock-analysis)"
+          else
+            echo "deep=false" >> "$GITHUB_OUTPUT"
+            echo "📊 今日跑盘后速览模式 (无 LLM)"
+          fi
+
+      # ===================== 第 3 步：young 盘后速览 =====================
+      - name: 3-1 A股盘后 (young a)
+        id: young_a
+        run: |
+          DATE=$(date +%F)
+          mkdir -p reports
+          echo "### 📈 A股盘后 ($DATE)" > reports/young-a-$DATE.md
+          echo '```' >> reports/young-a-$DATE.md
+          young a --no-news >> reports/young-a-$DATE.md 2>&1 || echo "young a 失败" >> reports/young-a-$DATE.md
+          echo '```' >> reports/young-a-$DATE.md
+          echo "✅ A股盘后完成"
+
+      - name: 3-2 全球快照 (young global)
+        id: young_global
+        run: |
+          DATE=$(date +%F)
+          echo "### 🌐 全球快照 ($DATE)" > reports/young-global-$DATE.md
+          echo '```' >> reports/young-global-$DATE.md
+          young global --no-news >> reports/young-global-$DATE.md 2>&1 || echo "young global 失败" >> reports/young-global-$DATE.md
+          echo '```' >> reports/young-global-$DATE.md
+          echo "✅ 全球快照完成"
+
+      - name: 3-3 自选股票速览 (young stock)
+        id: young_stocks
+        run: |
+          DATE=$(date +%F)
+          mkdir -p reports
+          {
+            echo "### 🔍 自选股票 ($DATE)"
+            IFS=',' read -ra S <<< "$STOCK_LIST"
+            for s in "${S[@]}"; do
+              s=$(echo "$s" | xargs); [ -z "$s" ] && continue
+              echo "**$s**"
+              echo '```'
+              young stock "$s" --no-news 2>/dev/null || echo "young stock $s 失败"
+              echo '```'
+            done
+          } > reports/young-stocks-$DATE.md
+          echo "✅ 自选股票速览完成"
+
+      - name: 3-4 自选基金速览 (young fund)
+        id: young_funds
+        run: |
+          DATE=$(date +%F)
+          {
+            echo "### 🏦 自选基金 ($DATE)"
+            IFS=',' read -ra F <<< "$FUND_LIST"
+            for f in "${F[@]}"; do
+              f=$(echo "$f" | xargs); [ -z "$f" ] && continue
+              echo "**基金 $f**"
+              echo '```'
+              young fund "$f" --no-news 2>/dev/null || echo "young fund $f 失败"
+              echo '```'
+            done
+          } > reports/young-funds-$DATE.md
+          echo "✅ 自选基金速览完成"
+
+      # ===================== 第 4 步：加载关注池（无持仓） =====================
+      - name: 4-1 清空并加载 watchlist
+        id: watchlist
+        run: |
+          # 清空旧关注池，避免重复
+          young watchlist clear 2>/dev/null || true
+
+          # 关注股票
+          IFS=',' read -ra S <<< "$STOCK_LIST"
+          for s in "${S[@]}"; do
+            s=$(echo "$s" | xargs); [ -z "$s" ] && continue
+            echo "👀 watch stock $s"
+            young watchlist add "$s" 2>/dev/null || echo "  ⚠️ 添加 $s 失败"
+          done
+
+          # 关注基金
+          IFS=',' read -ra F <<< "$FUND_LIST"
+          for f in "${F[@]}"; do
+            f=$(echo "$f" | xargs); [ -z "$f" ] && continue
+            echo "👀 watch fund $f"
+            young watchlist add "$f" 2>/dev/null || echo "  ⚠️ 添加 $f 失败"
+          done
+
+          echo "✅ watchlist 加载完成"
+          young watchlist list 2>/dev/null || true
+
+      # ===================== 第 5 步：深度研究（仅周六/手动强制） =====================
+      - name: 5-1 Young --llm 深度复盘 (DeepSeek)
+        id: deep_young
+        if: steps.mode.outputs.deep == 'true'
+        env:
+          OPENAI_API_KEY:  ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENAI_BASE_URL: https://api.deepseek.com/v1
+          OPENAI_MODEL:    deepseek-chat
+        run: |
+          DATE=$(date +%F)
+          mkdir -p reports/deep
+          echo "🧠 调用 DeepSeek 做 young 深度复盘 ..."
+          {
+            echo "### 🧠 Young 深度复盘 ($DATE, DeepSeek)"
+            echo '```'
+            young daily --llm --format summary 2>&1 \
+              || echo "young daily --llm 失败（检查 DEEPSEEK_API_KEY）"
+            echo '```'
+          } > reports/deep/young-llm-$DATE.md
+          echo "✅ young --llm 完成"
+
+      - name: 5-2 stock-analysis 深度研究
+        id: deep_sa
+        if: steps.mode.outputs.deep == 'true'
+        run: |
+          DATE=$(date +%F)
+          mkdir -p reports/deep
+          echo "🔬 跑 stock-analysis 正向+反向估值 ..."
+          {
+            echo "### 🔬 stock-analysis 深度研究 ($DATE)"
+            IFS=',' read -ra S <<< "$STOCK_LIST"
+            for s in "${S[@]}"; do
+              s=$(echo "$s" | xargs); [ -z "$s" ] && continue
+              echo "#### $s"
+              echo '```'
+              stock-analysis --market research \
+                --symbol "$s" \
+                --emit-evidence \
+                --depth standard 2>&1 \
+                || echo "stock-analysis $s 失败（可能未安装）"
+              echo '```'
+            done
+          } > reports/deep/sa-research-$DATE.md
+          echo "✅ stock-analysis 完成"
+
+      # ===================== 第 6 步：拼接日报 + 写 Issue =====================
+      - name: 6-1 拼接日报正文
+        id: digest
+        run: |
+          DATE=$(date +%F)
+          {
+            # 盘后速览
+            cat reports/young-a-$DATE.md
+            echo ""
+            cat reports/young-global-$DATE.md
+            echo ""
+            cat reports/young-stocks-$DATE.md
+            echo ""
+            cat reports/young-funds-$DATE.md
+            echo ""
+
+            # 深度段（仅周六/强制时存在）
+            if [ -f "reports/deep/young-llm-$DATE.md" ]; then
+              cat reports/deep/young-llm-$DATE.md
+              echo ""
+            fi
+            if [ -f "reports/deep/sa-research-$DATE.md" ]; then
+              cat reports/deep/sa-research-$DATE.md
+              echo ""
+            fi
+          } > reports/digest-$DATE.md
+
+          echo "=== 日报预览（前 50 行）==="
+          head -50 reports/digest-$DATE.md
+
+          # 把完整正文读进 output，供后面 step 用
+          {
+            echo "body<<EOF"
+            cat reports/digest-$DATE.md
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      - name: 6-2 确保标签存在
+        id: labels
+        run: |
+          # 建标签（已存在也不报错，错误不阻断流程）
+          gh label create "research"  --color "0E8A16" 2>&1 | grep -v "already exists" || true
+          gh label create "automated" --color "1D76DB" 2>&1 | grep -v "already exists" || true
+          echo "✅ 标签检查完成"
+
+      - name: 6-3 查找或创建日报 Issue
+        id: issue
+        run: |
+          TITLE="📈 投研日报 $(date +%F)"
+
+          # 查今天是否已有 Issue
+          NUM=$(gh issue list --search "$TITLE in:title" --state open \
+                --json number --jq '.[0].number // empty')
+
+          if [ -z "$NUM" ]; then
+            echo "🆕 未找到，创建新 Issue ..."
+            URL=$(gh issue create --title "$TITLE" --body "--- 自动生成 ---" \
+                  --label "research,automated")
+            NUM=$(echo "$URL" | grep -o '[0-9]\+$')
+            echo "✅ 创建 Issue #$NUM"
+          else
+            echo "♻️ 找到现有 Issue #$NUM"
+          fi
+
+          echo "issue_number=$NUM" >> $GITHUB_OUTPUT
+
+      - name: 6-4 追加摘要到 Issue
+        run: |
+          echo "📤 写入 Issue #${{ steps.issue.outputs.issue_number }} ..."
+          gh issue comment ${{ steps.issue.outputs.issue_number }} \
+            --body "${{ steps.digest.outputs.body }}"
+          echo "✅ 日报已写入 Issue"
+
+      # ===================== 第 7 步：上传完整证据包 =====================
+      - name: 7-1 上传 Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stock-reports-${{ github.run_id }}
+          path: reports/
+          retention-days: 14
