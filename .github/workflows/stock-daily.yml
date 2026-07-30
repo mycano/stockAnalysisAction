@@ -119,7 +119,32 @@ jobs:
           } > reports/young-$DATE.md
           echo "young_done=true" >> $GITHUB_OUTPUT
           echo "✅ young 盘后速览完成"
+      # ========== 第 4 步pre: 对变量添加到模型中 ==============
+      - name: Load watchlist (no positions)
+        run: |
+          # 清掉旧的关注池（避免重复）
+          young watchlist clear || true
 
+          # 关注股票
+          IFS=',' read -ra S <<< "$STOCK_LIST"
+          for s in "${S[@]}"; do
+            s=$(echo "$s" | xargs)
+            [ -z "$s" ] && continue
+            echo "👀 watch stock $s"
+            young watchlist add "$s"
+          done
+
+          # 关注基金
+          IFS=',' read -ra F <<< "$FUND_LIST"
+          for f in "${F[@]}"; do
+            f=$(echo "$f" | xargs)
+            [ -z "$f" ] && continue
+            echo "👀 watch fund $f"
+            young watchlist add "$f"
+          done
+
+          # 验证
+          young watchlist list
       # ========== 第 4 步：深度研究（仅周六 / 手动强制）==========
       - name: Young --llm 深度复盘 (DeepSeek 驱动)
         id: deep_young
