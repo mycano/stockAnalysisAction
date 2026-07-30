@@ -61,7 +61,6 @@ jobs:
           pip install young-stock-cli
           # stock-analysis 用 uv 装（深度研究段才用）
           pip install uv || true
-          uv tool install stock-analysis 2>/dev/null || true
           pip install git+https://github.com/AdvancingTitans/stock-analysis.git
           echo "----export success-----"
           echo "--- 检查命令 ---"
