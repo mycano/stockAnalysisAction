@@ -11,9 +11,10 @@
 #
 #  自选标的在 Settings → Variables 里改：
 #    STOCK_LIST / ETF_LIST / FUND_LIST
-#
+#    
 #  Secrets 里要加：
 #    DEEPSEEK_API_KEY = sk-xxxxxxxx（DeepSeek 控制台获取）
+#    FUND_HOLDINGS  / STOCK_HOLDINGS 
 # ============================================================
 
 name: 每日投研 (young 盘后 + 周六深度)
@@ -123,24 +124,29 @@ jobs:
       - name: Load watchlist (no positions)
         run: |
           # 清掉旧的关注池（避免重复）
-          young watchlist clear || true
+          young profile clear-stocks || true
+          young profile clear-funds || true
 
           # 关注股票
-          IFS=',' read -ra S <<< "$STOCK_LIST"
-          for s in "${S[@]}"; do
-            s=$(echo "$s" | xargs)
-            [ -z "$s" ] && continue
-            echo "👀 watch stock $s"
-            young profile add-stock "$s"
+          IFS=';' read -ra ROWS <<< "${{ vars.STOCK_HOLDINGS }}"
+          for row in "${ROWS[@]}"; do
+            [ -z "$row" ] && continue
+            sym=$(echo "$row" | cut -d',' -f1 | xargs)
+            dt=$(echo "$row" | cut -d',' -f2 | xargs)
+            qty=$(echo "$row" | cut -d',' -f3 | xargs)
+            echo "==> add-stock $sym $dt $qty"
+            young profile add-stock "$sym" --buy-date "$dt" --quantity "$qty"
           done
 
           # 关注基金
-          IFS=',' read -ra F <<< "$FUND_LIST"
-          for f in "${F[@]}"; do
-            f=$(echo "$f" | xargs)
-            [ -z "$f" ] && continue
-            echo "👀 watch fund $f"
-            young profile add-fund "$f"
+          IFS=';' read -ra ROWS <<< "${{ vars.FUND_HOLDINGS }}"
+          for row in "${ROWS[@]}"; do
+            [ -z "$row" ] && continue
+            sym=$(echo "$row" | cut -d',' -f1 | xargs)
+            dt=$(echo "$row" | cut -d',' -f2 | xargs)
+            qty=$(echo "$row" | cut -d',' -f3 | xargs)
+            echo "==> add-fund $sym $dt $qty"
+            young profile add-fund "$sym" --buy-date "$dt" --quantity "$qty"
           done
 
           # 验证
