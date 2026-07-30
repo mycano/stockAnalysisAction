@@ -160,7 +160,7 @@ jobs:
           for s in "${S[@]}"; do
             s=$(echo "$s" | xargs); [ -z "$s" ] && continue
             echo "👀 watch stock $s"
-            young watchlist add "$s" 2>/dev/null || echo "  ⚠️ 添加 $s 失败"
+            young profile add-stock "$s" 2>/dev/null || echo "  ⚠️ 添加 $s 失败"
           done
 
           # 关注基金
@@ -168,7 +168,7 @@ jobs:
           for f in "${F[@]}"; do
             f=$(echo "$f" | xargs); [ -z "$f" ] && continue
             echo "👀 watch fund $f"
-            young watchlist add "$f" 2>/dev/null || echo "  ⚠️ 添加 $f 失败"
+            young profile add-fund "$f" 2>/dev/null || echo "  ⚠️ 添加 $f 失败"
           done
 
           echo "✅ watchlist 加载完成"
